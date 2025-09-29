@@ -33,6 +33,7 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 ]
 
 THIRD_PARTY_APPS = [
@@ -40,6 +41,14 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_filters',
     'rest_framework_simplejwt',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.naver',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 ]
 
 LOCAL_APPS = [
@@ -250,3 +259,61 @@ LOGGING = {
 
 # Create logs directory
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# Django Sites Framework
+SITE_ID = 1
+
+# Django AllAuth Configuration
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+# Social account settings
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# Provider specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    },
+    'kakao': {
+        'SCOPE': [
+            'profile_nickname',
+            'account_email',
+        ],
+    },
+    'naver': {
+        'SCOPE': [
+            'name',
+            'email',
+        ],
+    }
+}
+
+# dj-rest-auth settings
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'jwt-auth',
+    'JWT_AUTH_REFRESH_COOKIE': 'jwt-refresh',
+}
+
+# Social account adapter
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.DefaultSocialAccountAdapter'

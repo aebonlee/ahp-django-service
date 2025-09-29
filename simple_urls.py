@@ -205,6 +205,11 @@ api_patterns = [
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
+    # Social Authentication
+    path('auth/', include('dj_rest_auth.urls')),
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('auth/social/', include('allauth.socialaccount.urls')),
+    
     # Apps  
     path('accounts/', include('apps.accounts.urls')),  # Re-enabled with correct path
     path('projects/', include('apps.projects.urls')),
