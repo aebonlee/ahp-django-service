@@ -95,7 +95,7 @@ EOF
     # Create superuser with custom role
     echo "Creating superuser and test accounts..."
     python manage.py shell <<EOF
-from accounts.models import User
+from apps.accounts.models import User
 try:
     # 슈퍼 관리자 생성 (Django 표준 방식)
     if not User.objects.filter(email='admin@ahp.com').exists():
