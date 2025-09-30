@@ -207,15 +207,30 @@ def api_root(request):
         }
     })
 
+# Import custom views if available
+try:
+    from apps.accounts.views import login_view as login_api, register as register_api
+    from apps.accounts.jwt_views import custom_token_obtain_pair
+except ImportError:
+    # Fallback if views are not available during migration
+    login_api = None
+    register_api = None  
+    custom_token_obtain_pair = None
+
 # API URL patterns
 api_patterns = [
     # API root
     path('', api_root, name='api_root'),
     
-    # Authentication
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # JWT Authentication - Custom view that supports email/username
+    path('auth/token/', custom_token_obtain_pair if custom_token_obtain_pair else TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # Social Authentication
+    path('auth/', include('dj_rest_auth.urls')),
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('auth/social/', include('allauth.socialaccount.urls')),
     
     # Apps
     path('accounts/', include('apps.accounts.urls')),
@@ -223,6 +238,13 @@ api_patterns = [
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
 ]
+
+# Add custom auth endpoints if available
+if login_api and register_api:
+    api_patterns += [
+        path('auth/login/', login_api, name='api_login'),
+        path('auth/register/', register_api, name='api_register'),
+    ]
 
 urlpatterns = [
     # Admin
