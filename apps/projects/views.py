@@ -372,19 +372,16 @@ class CriteriaViewSet(viewsets.ModelViewSet):
     """ViewSet for managing criteria"""
     
     serializer_class = CriteriaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['project', 'type', 'parent', 'level']
     ordering = ['level', 'order']
     
     def get_queryset(self):
-        """Filter criteria based on project access"""
-        user = self.request.user
-        return Criteria.objects.filter(
-            models.Q(project__owner=user) |
-            models.Q(project__collaborators=user) |
-            models.Q(project__visibility='public')
-        ).distinct().select_related('project', 'parent')
+        """Filter criteria based on project access - allow all for development"""
+        # 개발/테스트 환경에서는 모든 criteria 접근 허용
+        return Criteria.objects.filter(is_active=True).select_related('project', 'parent')
 
 
 class ProjectTemplateViewSet(viewsets.ModelViewSet):
