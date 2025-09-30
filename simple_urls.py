@@ -14,8 +14,10 @@ from rest_framework_simplejwt.views import (
 try:
     from apps.accounts.views import login_view as login_api, register as register_api
     from apps.accounts.jwt_views import custom_token_obtain_pair
-except ImportError:
+    print("✅ Custom auth views imported successfully")
+except ImportError as e:
     # Fallback if views are not available during migration
+    print(f"⚠️ Custom auth views import failed: {e}")
     login_api = None
     register_api = None  
     custom_token_obtain_pair = None

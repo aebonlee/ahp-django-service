@@ -76,7 +76,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'ahp_backend.urls'
+ROOT_URLCONF = 'simple_urls'
 
 TEMPLATES = [
     {
