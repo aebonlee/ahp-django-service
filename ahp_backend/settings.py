@@ -4,9 +4,9 @@ Django settings for ahp_backend project.
 Generated for AHP (Analytic Hierarchy Process) Platform
 Optimized for academic research and decision support systems.
 
-🚨 FORCE DEPLOYMENT - 2025-09-23 15:35
-26 commits pending deployment since 2025-09-16
-Critical database fixes included
+🚨 FORCE DEPLOYMENT - 2025-09-30 16:45
+Social authentication configured
+AllAuth middleware and rest_framework.authtoken added
 """
 
 import os
