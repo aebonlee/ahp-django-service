@@ -296,18 +296,30 @@ SOCIALACCOUNT_PROVIDERS = {
             'access_type': 'online',
         },
         'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': config('GOOGLE_OAUTH2_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_OAUTH2_CLIENT_SECRET', default=''),
+        }
     },
     'kakao': {
         'SCOPE': [
             'profile_nickname',
             'account_email',
         ],
+        'APP': {
+            'client_id': config('KAKAO_OAUTH2_CLIENT_ID', default=''),
+            'secret': config('KAKAO_OAUTH2_CLIENT_SECRET', default=''),
+        }
     },
     'naver': {
         'SCOPE': [
             'name',
             'email',
         ],
+        'APP': {
+            'client_id': config('NAVER_OAUTH2_CLIENT_ID', default='kqqpRycxCNX7TLc5_5Vt'),
+            'secret': config('NAVER_OAUTH2_CLIENT_SECRET', default='Jm8jWKQhXe'),
+        }
     }
 }
 
