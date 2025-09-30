@@ -22,6 +22,9 @@ except ImportError as e:
     register_api = None  
     custom_token_obtain_pair = None
 import os
+import sys
+import django
+from datetime import datetime
 
 
 def check_database_status():
@@ -247,6 +250,14 @@ urlpatterns = [
     
     # Test projects without authentication
     path('test-projects/', lambda request: JsonResponse(test_projects_access())),
+    
+    # Simple deployment test
+    path('test-deploy/', lambda request: JsonResponse({
+        'status': 'success',
+        'message': 'Backend is running',
+        'django_version': django.get_version() if 'django' in sys.modules else 'unknown',
+        'timestamp': datetime.now().isoformat() if 'datetime' in dir() else 'unknown'
+    })),
     
     # Debug endpoints 
     path('debug/urls/', lambda request: JsonResponse({
