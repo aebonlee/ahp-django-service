@@ -116,23 +116,133 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Criteria)
 class CriteriaAdmin(admin.ModelAdmin):
-    """Criteria admin"""
-    list_display = ('name', 'project', 'type', 'parent', 'level', 'order', 'is_active')
-    list_filter = ('type', 'level', 'is_active', 'project')
-    search_fields = ('name', 'description', 'project__title')
-    list_editable = ('order', 'is_active')
+    """기준(Criteria) 관리 어드민"""
+    list_display = [
+        'name',
+        'project_link', 
+        'type_badge',
+        'level_display',
+        'parent_display',
+        'order_display',
+        'weight_display',
+        'active_badge'
+    ]
+    list_filter = [
+        'project',
+        'type', 
+        'level',
+        'is_active',
+        'created_at'
+    ]
+    search_fields = ['name', 'description', 'project__title']
+    list_editable = ['order', 'is_active']
+    readonly_fields = ['id', 'created_at', 'updated_at']
     
     fieldsets = (
-        (None, {
+        ('기본 정보', {
             'fields': ('project', 'name', 'description', 'type')
         }),
-        ('Hierarchy', {
-            'fields': ('parent', 'order', 'level')
+        ('계층 구조', {
+            'fields': ('parent', 'level', 'order'),
+            'description': '계층 구조를 설정합니다. Level 1이 최상위입니다.'
         }),
-        ('Settings', {
-            'fields': ('weight', 'is_active')
+        ('설정', {
+            'fields': ('weight', 'is_active'),
+            'description': '가중치는 계산 완료 후 자동으로 업데이트됩니다.'
+        }),
+        ('시스템 정보', {
+            'fields': ('id', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
         }),
     )
+    
+    def project_link(self, obj):
+        """프로젝트 링크"""
+        if obj.project:
+            return format_html(
+                '<a href="{}" style="color: #007bff; text-decoration: none;">{}</a>',
+                f'/admin/projects/project/{obj.project.id}/change/',
+                obj.project.title
+            )
+        return '-'
+    project_link.short_description = '프로젝트'
+    
+    def type_badge(self, obj):
+        """유형 뱃지"""
+        if obj.type == 'criteria':
+            return format_html(
+                '<span style="background-color: #007bff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">📋 기준</span>'
+            )
+        elif obj.type == 'alternative':
+            return format_html(
+                '<span style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">🎯 대안</span>'
+            )
+        return format_html(
+            '<span style="background-color: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">❓ 미정</span>'
+        )
+    type_badge.short_description = '유형'
+    
+    def level_display(self, obj):
+        """계층 표시"""
+        level_icons = {1: '🥇', 2: '🥈', 3: '🥉'}
+        icon = level_icons.get(obj.level, '📍')
+        return f'{icon} Level {obj.level}'
+    level_display.short_description = '계층'
+    
+    def parent_display(self, obj):
+        """상위 기준 표시"""
+        if obj.parent:
+            return format_html(
+                '<a href="{}" style="color: #007bff;">↗️ {}</a>',
+                f'/admin/projects/criteria/{obj.parent.id}/change/',
+                obj.parent.name
+            )
+        return '🏠 최상위'
+    parent_display.short_description = '상위 기준'
+    
+    def order_display(self, obj):
+        """순서 표시"""
+        return f'#{obj.order}' if obj.order else '#0'
+    order_display.short_description = '순서'
+    
+    def weight_display(self, obj):
+        """가중치 표시"""
+        if obj.weight and obj.weight > 0:
+            return f'{obj.weight:.3f} ({obj.weight*100:.1f}%)'
+        return '미계산'
+    weight_display.short_description = '가중치'
+    
+    def active_badge(self, obj):
+        """활성화 상태 뱃지"""
+        if obj.is_active:
+            return format_html(
+                '<span style="color: #28a745; font-weight: bold;">✅ 활성</span>'
+            )
+        return format_html(
+            '<span style="color: #dc3545; font-weight: bold;">❌ 비활성</span>'
+        )
+    active_badge.short_description = '상태'
+    
+    # 액션 추가
+    actions = ['activate_criteria', 'deactivate_criteria', 'reset_weights']
+    
+    def activate_criteria(self, request, queryset):
+        """선택된 기준 활성화"""
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated}개의 기준을 활성화했습니다.')
+    activate_criteria.short_description = '선택된 기준 활성화'
+    
+    def deactivate_criteria(self, request, queryset):
+        """선택된 기준 비활성화"""
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated}개의 기준을 비활성화했습니다.')
+    deactivate_criteria.short_description = '선택된 기준 비활성화'
+    
+    def reset_weights(self, request, queryset):
+        """선택된 기준의 가중치 초기화"""
+        updated = queryset.update(weight=0.0)
+        self.message_user(request, f'{updated}개의 기준 가중치를 초기화했습니다.')
+    reset_weights.short_description = '선택된 기준 가중치 초기화'
 
 
 @admin.register(ProjectTemplate)
