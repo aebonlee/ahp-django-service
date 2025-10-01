@@ -170,7 +170,7 @@ class WeightVectorAdmin(admin.ModelAdmin):
             'description': '가중치 계산 방법과 최종 결과 여부'
         }),
         ('추가 정보', {
-            'fields': ('metadata', 'created_at', 'updated_at'),
+            'fields': ('metadata', 'created_at'),
             'classes': ('collapse',)
         }),
     )
@@ -252,7 +252,7 @@ class ConsensusMetricsAdmin(admin.ModelAdmin):
     ]
     list_filter = ['consensus_level', 'calculated_at', 'project']
     search_fields = ['project__title']
-    readonly_fields = ['calculated_at', 'updated_at']
+    readonly_fields = ['calculated_at']
     
     fieldsets = (
         ('기본 정보', {
@@ -268,7 +268,7 @@ class ConsensusMetricsAdmin(admin.ModelAdmin):
             'description': 'JSON 형태의 상세 합의 지표'
         }),
         ('계산 정보', {
-            'fields': ('calculated_at', 'updated_at'),
+            'fields': ('calculated_at',),
             'classes': ('collapse',)
         }),
     )
