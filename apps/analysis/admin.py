@@ -159,18 +159,18 @@ class WeightVectorAdmin(admin.ModelAdmin):
     ]
     list_filter = ['method', 'is_final', 'project', 'criteria__level']
     search_fields = ['criteria__name', 'project__title']
-    readonly_fields = ['created_at']
+    readonly_fields = ['calculated_at']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('project', 'criteria', 'weight', 'rank')
+            'fields': ('project', 'criteria', 'weight', 'normalized_weight', 'rank')
         }),
         ('계산 방법', {
-            'fields': ('method', 'is_final', 'eigenvalue'),
+            'fields': ('method', 'is_final'),
             'description': '가중치 계산 방법과 최종 결과 여부'
         }),
         ('추가 정보', {
-            'fields': ('metadata', 'created_at'),
+            'fields': ('calculated_at',),
             'classes': ('collapse',)
         }),
     )
