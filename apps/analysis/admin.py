@@ -21,7 +21,7 @@ class AnalysisResultAdmin(admin.ModelAdmin):
     ]
     list_filter = ['type', 'status', 'created_at', 'project']
     search_fields = ['title', 'description', 'project__title', 'created_by__username']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at']
     
     fieldsets = (
         ('기본 정보', {
@@ -159,7 +159,7 @@ class WeightVectorAdmin(admin.ModelAdmin):
     ]
     list_filter = ['method', 'is_final', 'project', 'criteria__level']
     search_fields = ['criteria__name', 'project__title']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at']
     
     fieldsets = (
         ('기본 정보', {

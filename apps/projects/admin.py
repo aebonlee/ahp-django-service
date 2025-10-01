@@ -135,7 +135,7 @@ class CriteriaAdmin(admin.ModelAdmin):
         'created_at'
     ]
     search_fields = ['name', 'description', 'project__title']
-    list_editable = ['order', 'is_active']
+    list_editable = []
     readonly_fields = ['id', 'created_at', 'updated_at']
     
     fieldsets = (
