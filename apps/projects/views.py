@@ -382,6 +382,107 @@ class CriteriaViewSet(viewsets.ModelViewSet):
         """Filter criteria based on project access - allow all for development"""
         # 개발/테스트 환경에서는 모든 criteria 접근 허용
         return Criteria.objects.filter(is_active=True).select_related('project', 'parent')
+    
+    def create(self, request, *args, **kwargs):
+        """Create new criteria with proper validation"""
+        try:
+            # Log the incoming request data
+            print(f"Creating criteria with data: {request.data}")
+            
+            # Ensure required fields are present
+            if 'project' not in request.data:
+                return Response(
+                    {'error': 'Project ID is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if 'name' not in request.data:
+                return Response(
+                    {'error': 'Criteria name is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check for duplicate name within the same project
+            existing_criteria = Criteria.objects.filter(
+                project=request.data['project'],
+                name=request.data['name']
+            ).first()
+            
+            if existing_criteria:
+                return Response(
+                    {'error': f'A criteria with the name "{request.data["name"]}" already exists in this project'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Set default values if not provided
+            data = request.data.copy()
+            if 'type' not in data:
+                data['type'] = 'criteria'
+            if 'level' not in data:
+                data['level'] = 1 if not data.get('parent') else 2
+            if 'order' not in data:
+                # Auto-set order based on existing criteria
+                existing_count = Criteria.objects.filter(
+                    project=data['project'],
+                    parent=data.get('parent')
+                ).count()
+                data['order'] = existing_count + 1
+            if 'is_active' not in data:
+                data['is_active'] = True
+            
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            
+        except Exception as e:
+            print(f"Error creating criteria: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Failed to create criteria: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def perform_create(self, serializer):
+        """Perform the creation of criteria"""
+        serializer.save()
+    
+    def update(self, request, *args, **kwargs):
+        """Update criteria with validation"""
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            
+            if getattr(instance, '_prefetched_objects_cache', None):
+                instance._prefetched_objects_cache = {}
+                
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error updating criteria: {str(e)}")
+            return Response(
+                {'error': f'Failed to update criteria: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete criteria by setting is_active to False"""
+        try:
+            instance = self.get_object()
+            instance.is_active = False
+            instance.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            print(f"Error deleting criteria: {str(e)}")
+            return Response(
+                {'error': f'Failed to delete criteria: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ProjectTemplateViewSet(viewsets.ModelViewSet):

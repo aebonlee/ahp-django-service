@@ -15,7 +15,7 @@ class CriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Criteria
         fields = [
-            'id', 'name', 'description', 'type', 'parent', 'order', 'level',
+            'id', 'project', 'name', 'description', 'type', 'parent', 'order', 'level',
             'weight', 'is_active', 'created_at', 'updated_at', 'children', 'full_path'
         ]
         
