@@ -7,7 +7,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import (
-    ActivityLog, Notification, SystemSetting,
+    ActivityLog, Notification, SystemSettings,
     APIKey, FileUpload
 )
 
@@ -18,31 +18,34 @@ User = get_user_model()
 class ActivityLogAdmin(admin.ModelAdmin):
     """활동 로그 관리"""
     list_display = [
-        'user_email', 'action_badge', 'target_display',
+        'user_email', 'action_badge', 'level_badge',
         'ip_address', 'user_agent_short', 'timestamp_display'
     ]
     list_filter = [
-        'action', 'timestamp',
+        'action', 'level', 'timestamp',
         ('user', admin.RelatedOnlyFieldListFilter)
     ]
-    search_fields = ['user__email', 'action', 'details', 'ip_address']
+    search_fields = ['user__email', 'action', 'message', 'ip_address']
     readonly_fields = [
-        'user', 'action', 'target_type', 'target_id',
-        'details', 'ip_address', 'user_agent', 'timestamp'
+        'user', 'action', 'level', 'content_type', 'object_id',
+        'message', 'details', 'ip_address', 'user_agent', 'request_path', 'timestamp'
     ]
     ordering = ['-timestamp']
     date_hierarchy = 'timestamp'
     
     fieldsets = (
         ('활동 정보', {
-            'fields': ('user', 'action', 'target_type', 'target_id')
+            'fields': ('user', 'action', 'level', 'message')
+        }),
+        ('대상 정보', {
+            'fields': ('content_type', 'object_id')
         }),
         ('상세 정보', {
-            'fields': ('details', 'metadata'),
+            'fields': ('details',),
             'classes': ('collapse',)
         }),
         ('접속 정보', {
-            'fields': ('ip_address', 'user_agent', 'timestamp')
+            'fields': ('ip_address', 'user_agent', 'request_path', 'timestamp')
         }),
     )
     
@@ -84,11 +87,19 @@ class ActivityLogAdmin(admin.ModelAdmin):
         )
     action_badge.short_description = '활동'
     
-    def target_display(self, obj):
-        if obj.target_type and obj.target_id:
-            return f'{obj.target_type} #{obj.target_id}'
-        return '-'
-    target_display.short_description = '대상'
+    def level_badge(self, obj):
+        level_colors = {
+            'info': '#17a2b8',
+            'warning': '#ffc107',
+            'error': '#dc3545',
+            'debug': '#6c757d'
+        }
+        color = level_colors.get(obj.level, '#6c757d')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, obj.get_level_display()
+        )
+    level_badge.short_description = '레벨'
     
     def user_agent_short(self, obj):
         if obj.user_agent:
@@ -124,30 +135,30 @@ class NotificationAdmin(admin.ModelAdmin):
     """알림 관리"""
     list_display = [
         'recipient_email', 'type_badge', 'title_short',
-        'is_read_badge', 'priority_badge', 'created_date'
+        'is_read_badge', 'is_important_badge', 'created_date'
     ]
     list_filter = [
-        'notification_type', 'is_read', 'priority',
+        'type', 'is_read', 'is_important',
         'created_at', 'read_at'
     ]
-    search_fields = ['recipient__email', 'title', 'message']
+    search_fields = ['recipient__email', 'recipient__username', 'title', 'message']
     readonly_fields = ['created_at', 'read_at']
     ordering = ['-created_at']
     date_hierarchy = 'created_at'
     
     fieldsets = (
         ('수신자 정보', {
-            'fields': ('recipient', 'notification_type', 'priority')
+            'fields': ('recipient', 'type', 'is_important')
         }),
         ('알림 내용', {
-            'fields': ('title', 'message', 'action_url')
+            'fields': ('title', 'message', 'action_url', 'action_label')
+        }),
+        ('관련 객체', {
+            'fields': ('content_type', 'object_id'),
+            'classes': ('collapse',)
         }),
         ('상태', {
-            'fields': ('is_read', 'read_at', 'created_at')
-        }),
-        ('추가 데이터', {
-            'fields': ('metadata',),
-            'classes': ('collapse',)
+            'fields': ('is_read', 'read_at', 'created_at', 'expires_at')
         }),
     )
     
@@ -160,15 +171,12 @@ class NotificationAdmin(admin.ModelAdmin):
             'info': ('ℹ️', '#17a2b8'),
             'success': ('✅', '#28a745'),
             'warning': ('⚠️', '#ffc107'),
-            'error': ('❌', '#dc3545'),
-            'invitation': ('✉️', '#007bff'),
-            'reminder': ('⏰', '#6f42c1'),
-            'system': ('⚙️', '#6c757d')
+            'error': ('❌', '#dc3545')
         }
-        icon, color = type_info.get(obj.notification_type, ('📢', '#6c757d'))
+        icon, color = type_info.get(obj.type, ('📢', '#6c757d'))
         return format_html(
             '{} <span style="color: {};">{}</span>',
-            icon, color, obj.get_notification_type_display()
+            icon, color, obj.get_type_display()
         )
     type_badge.short_description = '유형'
     
@@ -182,19 +190,11 @@ class NotificationAdmin(admin.ModelAdmin):
         return format_html('<span style="color: #007bff; font-weight: bold;">📬 안읽음</span>')
     is_read_badge.short_description = '상태'
     
-    def priority_badge(self, obj):
-        priority_colors = {
-            'low': '#6c757d',
-            'normal': '#28a745',
-            'high': '#ffc107',
-            'urgent': '#dc3545'
-        }
-        color = priority_colors.get(obj.priority, '#6c757d')
-        return format_html(
-            '<span style="color: {};">●</span> {}',
-            color, obj.get_priority_display()
-        )
-    priority_badge.short_description = '우선순위'
+    def is_important_badge(self, obj):
+        if obj.is_important:
+            return format_html('<span style="color: #dc3545;">⭐ 중요</span>')
+        return format_html('<span style="color: #6c757d;">☆ 일반</span>')
+    is_important_badge.short_description = '중요도'
     
     def created_date(self, obj):
         # 오늘이면 시간만, 아니면 날짜 표시
@@ -203,7 +203,7 @@ class NotificationAdmin(admin.ModelAdmin):
         return obj.created_at.strftime('%m/%d')
     created_date.short_description = '생성'
     
-    actions = ['mark_as_read', 'mark_as_unread', 'send_notification']
+    actions = ['mark_as_read', 'mark_as_unread']
     
     def mark_as_read(self, request, queryset):
         updated = queryset.update(is_read=True, read_at=timezone.now())
@@ -216,38 +216,38 @@ class NotificationAdmin(admin.ModelAdmin):
     mark_as_unread.short_description = '선택된 알림을 안읽음으로 표시'
 
 
-@admin.register(SystemSetting)
+@admin.register(SystemSettings)
 class SystemSettingAdmin(admin.ModelAdmin):
     """시스템 설정 관리"""
     list_display = [
         'key', 'value_display', 'category_badge',
-        'is_active_badge', 'updated_date'
+        'is_editable_badge', 'updated_date'
     ]
-    list_filter = ['category', 'is_active', 'updated_at']
+    list_filter = ['category', 'is_editable', 'is_public', 'updated_at']
     search_fields = ['key', 'value', 'description']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['category', 'key']
     
     fieldsets = (
         ('설정 정보', {
-            'fields': ('key', 'value', 'category', 'data_type')
+            'fields': ('key', 'value', 'category', 'value_type')
         }),
         ('설명', {
-            'fields': ('description', 'default_value')
+            'fields': ('name', 'description')
         }),
         ('상태', {
-            'fields': ('is_active', 'is_public')
+            'fields': ('is_editable', 'is_public')
         }),
         ('메타데이터', {
-            'fields': ('metadata', 'created_at', 'updated_at'),
+            'fields': ('validation_rules', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
     
     def value_display(self, obj):
-        if obj.data_type == 'bool':
+        if obj.value_type == 'boolean':
             return '✅' if obj.value.lower() == 'true' else '❌'
-        elif obj.data_type == 'password':
+        elif 'password' in obj.key.lower():
             return '●●●●●●●●'
         elif len(obj.value) > 50:
             return obj.value[:50] + '...'
@@ -259,9 +259,8 @@ class SystemSettingAdmin(admin.ModelAdmin):
             'general': ('⚙️', '#6c757d'),
             'email': ('✉️', '#007bff'),
             'security': ('🔒', '#dc3545'),
-            'api': ('🔌', '#28a745'),
-            'ui': ('🎨', '#ffc107'),
-            'backup': ('💾', '#6f42c1')
+            'analytics': ('📊', '#28a745'),
+            'ui': ('🎨', '#ffc107')
         }
         icon, color = categories.get(obj.category, ('📋', '#6c757d'))
         return format_html(
@@ -270,11 +269,11 @@ class SystemSettingAdmin(admin.ModelAdmin):
         )
     category_badge.short_description = '카테고리'
     
-    def is_active_badge(self, obj):
-        if obj.is_active:
-            return format_html('<span style="color: #28a745;">● 활성</span>')
-        return format_html('<span style="color: #dc3545;">● 비활성</span>')
-    is_active_badge.short_description = '상태'
+    def is_editable_badge(self, obj):
+        if obj.is_editable:
+            return format_html('<span style="color: #28a745;">✏️ 수정가능</span>')
+        return format_html('<span style="color: #dc3545;">🔒 읽기전용</span>')
+    is_editable_badge.short_description = '편집'
     
     def updated_date(self, obj):
         return obj.updated_at.strftime('%Y-%m-%d %H:%M')
@@ -286,28 +285,28 @@ class APIKeyAdmin(admin.ModelAdmin):
     """API 키 관리"""
     list_display = [
         'name', 'user_email', 'key_preview', 'is_active_badge',
-        'usage_count', 'last_used_display', 'expires_display'
+        'rate_limit_display', 'usage_count', 'last_used_display', 'expires_display'
     ]
     list_filter = ['is_active', 'created_at', 'expires_at']
-    search_fields = ['name', 'user__email', 'description']
+    search_fields = ['name', 'user__email', 'user__username']
     readonly_fields = ['key', 'usage_count', 'last_used_at', 'created_at']
     ordering = ['-created_at']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('name', 'user', 'description')
+            'fields': ('name', 'user')
         }),
         ('API 키', {
-            'fields': ('key', 'scopes', 'rate_limit')
+            'fields': ('key', 'permissions', 'rate_limit')
         }),
         ('사용 정보', {
-            'fields': ('usage_count', 'last_used_at', 'last_used_ip')
+            'fields': ('usage_count', 'last_used_at')
         }),
         ('유효기간', {
             'fields': ('is_active', 'expires_at')
         }),
-        ('메타데이터', {
-            'fields': ('metadata', 'created_at'),
+        ('시간 정보', {
+            'fields': ('created_at',),
             'classes': ('collapse',)
         }),
     )
@@ -330,6 +329,13 @@ class APIKeyAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #ffc107;">⏰ 만료됨</span>')
         return format_html('<span style="color: #28a745;">✅ 활성</span>')
     is_active_badge.short_description = '상태'
+    
+    def rate_limit_display(self, obj):
+        return format_html(
+            '<span style="color: #007bff;">{} req/h</span>',
+            obj.rate_limit
+        )
+    rate_limit_display.short_description = '제한'
     
     def last_used_display(self, obj):
         if obj.last_used_at:
@@ -356,7 +362,7 @@ class APIKeyAdmin(admin.ModelAdmin):
         return '무제한'
     expires_display.short_description = '만료일'
     
-    actions = ['activate_keys', 'deactivate_keys', 'regenerate_keys']
+    actions = ['activate_keys', 'deactivate_keys']
     
     def activate_keys(self, request, queryset):
         updated = queryset.update(is_active=True)
@@ -373,61 +379,65 @@ class APIKeyAdmin(admin.ModelAdmin):
 class FileUploadAdmin(admin.ModelAdmin):
     """파일 업로드 관리"""
     list_display = [
-        'filename_display', 'file_type_badge', 'file_size_display',
+        'filename_display', 'upload_type_badge', 'file_size_display',
         'uploaded_by_email', 'upload_status_badge', 'uploaded_date'
     ]
-    list_filter = ['file_type', 'upload_status', 'uploaded_at']
-    search_fields = ['original_filename', 'uploaded_by__email', 'description']
-    readonly_fields = ['file_path', 'file_size', 'mime_type', 'checksum', 'uploaded_at']
-    ordering = ['-uploaded_at']
-    date_hierarchy = 'uploaded_at'
+    list_filter = ['upload_type', 'status', 'created_at']
+    search_fields = ['original_name', 'uploaded_by__email']
+    readonly_fields = ['id', 'file_path', 'file_size', 'mime_type', 'created_at', 'completed_at']
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
     
     fieldsets = (
         ('파일 정보', {
-            'fields': ('original_filename', 'file_path', 'file_type', 'mime_type')
+            'fields': ('original_name', 'file_path', 'upload_type', 'mime_type')
         }),
         ('파일 상세', {
-            'fields': ('file_size', 'checksum', 'description')
+            'fields': ('file_size', 'status')
         }),
         ('업로드 정보', {
-            'fields': ('uploaded_by', 'project', 'upload_status')
+            'fields': ('uploaded_by',)
+        }),
+        ('처리 결과', {
+            'fields': ('processing_results', 'error_message'),
+            'classes': ('collapse',)
         }),
         ('메타데이터', {
-            'fields': ('metadata', 'uploaded_at'),
+            'fields': ('id', 'metadata', 'created_at', 'completed_at'),
             'classes': ('collapse',)
         }),
     )
     
     def filename_display(self, obj):
         icon = {
-            'image': '🖼️',
-            'document': '📄',
-            'spreadsheet': '📊',
-            'pdf': '📕',
-            'video': '🎥',
-            'audio': '🎵',
-            'archive': '📦',
-            'other': '📎'
-        }.get(obj.file_type, '📎')
-        return format_html('{} {}', icon, obj.original_filename[:30])
+            'project_import': '📥',
+            'data_export': '📤',
+            'user_avatar': '👤',
+            'document': '📄'
+        }.get(obj.upload_type, '📎')
+        return format_html('{} {}', icon, obj.original_name[:30])
     filename_display.short_description = '파일명'
     
-    def file_type_badge(self, obj):
+    def upload_type_badge(self, obj):
         type_colors = {
-            'image': '#28a745',
-            'document': '#007bff',
-            'spreadsheet': '#17a2b8',
-            'pdf': '#dc3545',
-            'video': '#6f42c1',
-            'audio': '#ffc107',
-            'archive': '#6c757d'
+            'project_import': '#28a745',
+            'data_export': '#007bff',
+            'user_avatar': '#ffc107',
+            'document': '#6c757d'
         }
-        color = type_colors.get(obj.file_type, '#6c757d')
+        color = type_colors.get(obj.upload_type, '#6c757d')
+        type_labels = {
+            'project_import': '프로젝트',
+            'data_export': '내보내기',
+            'user_avatar': '아바타',
+            'document': '문서'
+        }
+        label = type_labels.get(obj.upload_type, obj.upload_type)
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 6px; border-radius: 3px;">{}</span>',
-            color, obj.file_type.upper()
+            color, label
         )
-    file_type_badge.short_description = '유형'
+    upload_type_badge.short_description = '유형'
     
     def file_size_display(self, obj):
         if obj.file_size:
@@ -446,12 +456,11 @@ class FileUploadAdmin(admin.ModelAdmin):
     
     def upload_status_badge(self, obj):
         status_info = {
-            'pending': ('⏳', '#ffc107', '대기'),
-            'processing': ('🔄', '#17a2b8', '처리중'),
+            'uploading': ('⏳', '#ffc107', '업로드중'),
             'completed': ('✅', '#28a745', '완료'),
             'failed': ('❌', '#dc3545', '실패')
         }
-        icon, color, text = status_info.get(obj.upload_status, ('❓', '#6c757d', '알수없음'))
+        icon, color, text = status_info.get(obj.status, ('❓', '#6c757d', '알수없음'))
         return format_html(
             '{} <span style="color: {};">{}</span>',
             icon, color, text
@@ -459,17 +468,17 @@ class FileUploadAdmin(admin.ModelAdmin):
     upload_status_badge.short_description = '상태'
     
     def uploaded_date(self, obj):
-        return obj.uploaded_at.strftime('%Y-%m-%d %H:%M')
+        return obj.created_at.strftime('%Y-%m-%d %H:%M')
     uploaded_date.short_description = '업로드일'
     
-    actions = ['mark_as_completed', 'mark_as_failed', 'delete_files']
+    actions = ['mark_as_completed', 'mark_as_failed']
     
     def mark_as_completed(self, request, queryset):
-        updated = queryset.update(upload_status='completed')
+        updated = queryset.update(status='completed', completed_at=timezone.now())
         self.message_user(request, f'{updated}개 파일을 완료 상태로 변경했습니다.')
     mark_as_completed.short_description = '선택된 파일을 완료 상태로 변경'
     
     def mark_as_failed(self, request, queryset):
-        updated = queryset.update(upload_status='failed')
+        updated = queryset.update(status='failed')
         self.message_user(request, f'{updated}개 파일을 실패 상태로 변경했습니다.')
     mark_as_failed.short_description = '선택된 파일을 실패 상태로 변경'
