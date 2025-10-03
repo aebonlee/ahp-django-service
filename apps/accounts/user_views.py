@@ -6,12 +6,13 @@ Django User 모델과 연동된 REST API 엔드포인트
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from .serializers import BasicUserSerializer
 from django.contrib.auth.hashers import make_password
 from apps.common.api_permissions import IsAdminUserOrReadOnly
 
+User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
     """
