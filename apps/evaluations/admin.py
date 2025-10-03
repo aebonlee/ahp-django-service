@@ -191,7 +191,7 @@ class PairwiseComparisonAdmin(admin.ModelAdmin):
     ]
     list_filter = ['confidence', 'answered_at', 'evaluation__project']
     search_fields = ['evaluation__project__title', 'criteria_a__name', 'criteria_b__name']
-    readonly_fields = ['answered_at', 'created_at', 'updated_at']
+    readonly_fields = ['answered_at']
     ordering = ['-answered_at']
     
     fieldsets = (
@@ -199,13 +199,13 @@ class PairwiseComparisonAdmin(admin.ModelAdmin):
             'fields': ('evaluation',)
         }),
         ('비교 기준', {
-            'fields': ('criteria_a', 'criteria_b', 'level')
+            'fields': ('criteria_a', 'criteria_b')
         }),
         ('평가 값', {
             'fields': ('value', 'confidence', 'comment')
         }),
         ('시간 정보', {
-            'fields': ('answered_at', 'created_at', 'updated_at'),
+            'fields': ('answered_at', 'time_spent'),
             'classes': ('collapse',)
         }),
     )
@@ -422,7 +422,7 @@ class EvaluationSessionAdmin(admin.ModelAdmin):
     ]
     list_filter = ['started_at', 'ended_at']
     search_fields = ['evaluation__project__title', 'evaluation__evaluator__email', 'ip_address']
-    readonly_fields = ['started_at', 'ended_at', 'duration', 'session_data']
+    readonly_fields = ['started_at', 'ended_at', 'duration']
     ordering = ['-started_at']
     
     fieldsets = (
@@ -432,8 +432,12 @@ class EvaluationSessionAdmin(admin.ModelAdmin):
         ('세션 정보', {
             'fields': ('started_at', 'ended_at', 'duration')
         }),
+        ('활동 정보', {
+            'fields': ('page_views', 'interactions'),
+            'classes': ('collapse',)
+        }),
         ('접속 정보', {
-            'fields': ('ip_address', 'user_agent', 'session_data'),
+            'fields': ('ip_address', 'user_agent'),
             'classes': ('collapse',)
         }),
     )
