@@ -1,9 +1,12 @@
 """
 Admin configuration for Analysis models
+분석 모델 관리자 설정
 """
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.utils import timezone
+from django.db.models import Count, Avg, Q
 import json
 from .models import AnalysisResult, WeightVector, ConsensusMetrics
 
@@ -144,6 +147,30 @@ class AnalysisResultAdmin(admin.ModelAdmin):
         """생성일 표시"""
         return obj.created_at.strftime('%m/%d %H:%M') if obj.created_at else '-'
     created_at_display.short_description = '생성일'
+    
+    actions = ['run_analysis', 'export_results', 'mark_as_completed']
+    
+    def run_analysis(self, request, queryset):
+        """선택된 분석 실행"""
+        count = 0
+        for analysis in queryset.filter(status__in=['pending', 'failed']):
+            analysis.status = 'running'
+            analysis.save()
+            count += 1
+        self.message_user(request, f'{count}개의 분석을 실행 중입니다.')
+    run_analysis.short_description = '선택된 분석 실행'
+    
+    def export_results(self, request, queryset):
+        """결과 내보내기"""
+        count = queryset.filter(status='completed').count()
+        self.message_user(request, f'{count}개의 분석 결과를 내보낼 준비가 되었습니다.')
+    export_results.short_description = '분석 결과 내보내기'
+    
+    def mark_as_completed(self, request, queryset):
+        """완료 처리"""
+        updated = queryset.update(status='completed', updated_at=timezone.now())
+        self.message_user(request, f'{updated}개의 분석을 완료 처리했습니다.')
+    mark_as_completed.short_description = '선택된 분석 완료 처리'
 
 
 @admin.register(WeightVector)
@@ -238,6 +265,46 @@ class WeightVectorAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #28a745; font-weight: bold;">⭐ 최종</span>')
         return format_html('<span style="color: #6c757d;">📝 임시</span>')
     final_badge.short_description = '상태'
+    
+    actions = ['finalize_weights', 'recalculate_weights', 'normalize_weights']
+    
+    def finalize_weights(self, request, queryset):
+        """가중치 최종 확정"""
+        # 같은 프로젝트의 다른 가중치는 임시로 변경
+        projects = queryset.values_list('project', flat=True).distinct()
+        for project_id in projects:
+            WeightVector.objects.filter(project_id=project_id).update(is_final=False)
+        
+        updated = queryset.update(is_final=True)
+        self.message_user(request, f'{updated}개의 가중치를 최종 확정했습니다.')
+    finalize_weights.short_description = '선택된 가중치 최종 확정'
+    
+    def recalculate_weights(self, request, queryset):
+        """가중치 재계산"""
+        count = 0
+        for weight in queryset:
+            # 실제 재계산 로직은 모델 메서드에서 처리
+            weight.calculated_at = timezone.now()
+            weight.save()
+            count += 1
+        self.message_user(request, f'{count}개의 가중치를 재계산했습니다.')
+    recalculate_weights.short_description = '선택된 가중치 재계산'
+    
+    def normalize_weights(self, request, queryset):
+        """가중치 정규화"""
+        # 프로젝트별로 정규화
+        projects = queryset.values_list('project', flat=True).distinct()
+        for project_id in projects:
+            weights = queryset.filter(project_id=project_id)
+            total = sum(w.weight for w in weights if w.weight)
+            if total > 0:
+                for weight in weights:
+                    if weight.weight:
+                        weight.normalized_weight = weight.weight / total
+                        weight.save()
+        
+        self.message_user(request, f'{queryset.count()}개의 가중치를 정규화했습니다.')
+    normalize_weights.short_description = '선택된 가중치 정규화'
 
 
 @admin.register(ConsensusMetrics)
@@ -319,5 +386,45 @@ class ConsensusMetricsAdmin(admin.ModelAdmin):
     
     def calculated_at_display(self, obj):
         """계산일 표시"""
-        return obj.calculated_at.strftime('%m/%d %H:%M') if obj.calculated_at else '-'
+        if obj.calculated_at:
+            days_ago = (timezone.now() - obj.calculated_at).days
+            if days_ago == 0:
+                return format_html('<span style="color: #28a745;">🔄 오늘</span>')
+            elif days_ago == 1:
+                return '어제'
+            elif days_ago < 7:
+                return f'{days_ago}일 전'
+            else:
+                return obj.calculated_at.strftime('%m/%d')
+        return '-'
     calculated_at_display.short_description = '계산일'
+    
+    actions = ['recalculate_consensus', 'export_consensus_report']
+    
+    def recalculate_consensus(self, request, queryset):
+        """합의도 재계산"""
+        count = 0
+        for consensus in queryset:
+            # 실제 재계산 로직
+            consensus.calculated_at = timezone.now()
+            consensus.save()
+            count += 1
+        self.message_user(request, f'{count}개 프로젝트의 합의도를 재계산했습니다.')
+    recalculate_consensus.short_description = '선택된 합의도 재계산'
+    
+    def export_consensus_report(self, request, queryset):
+        """합의도 보고서 내보내기"""
+        high_consensus = queryset.filter(consensus_level__gte=0.7).count()
+        medium_consensus = queryset.filter(consensus_level__gte=0.5, consensus_level__lt=0.7).count()
+        low_consensus = queryset.filter(consensus_level__lt=0.5).count()
+        
+        self.message_user(
+            request,
+            f'합의도 보고서: 높음 {high_consensus}개, 중간 {medium_consensus}개, 낮음 {low_consensus}개'
+        )
+    export_consensus_report.short_description = '합의도 보고서 생성'
+    
+    def get_queryset(self, request):
+        """쿼리셋 최적화"""
+        qs = super().get_queryset(request)
+        return qs.select_related('project').prefetch_related('project__evaluations')

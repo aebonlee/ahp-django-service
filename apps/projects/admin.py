@@ -3,7 +3,11 @@ Admin configuration for Project models
 """
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Project, ProjectMember, Criteria, ProjectTemplate
+from django.utils import timezone
+from .models import (
+    Project, ProjectMember, Criteria, ProjectTemplate,
+    ComparisonMatrix, SensitivityAnalysis, ReportTemplate
+)
 
 
 class CriteriaInline(admin.TabularInline):
@@ -264,3 +268,254 @@ class ProjectTemplateAdmin(admin.ModelAdmin):
             'fields': ('is_public', 'usage_count', 'created_at')
         }),
     )
+
+
+@admin.register(ProjectMember)
+class ProjectMemberAdmin(admin.ModelAdmin):
+    """프로젝트 멤버 관리"""
+    list_display = [
+        'project_name', 'user_email', 'role_badge', 'joined_date',
+        'permissions_display', 'is_active_badge'
+    ]
+    list_filter = ['role', 'joined_at', 'can_edit_structure', 'can_manage_evaluators']
+    search_fields = ['project__title', 'user__email', 'user__username']
+    ordering = ['-joined_at']
+    
+    fieldsets = (
+        ('프로젝트 정보', {
+            'fields': ('project', 'user', 'role')
+        }),
+        ('권한 설정', {
+            'fields': (
+                'can_edit_structure',
+                'can_manage_evaluators', 
+                'can_view_results',
+                'can_export_results'
+            )
+        }),
+        ('활동 정보', {
+            'fields': ('joined_at', 'last_accessed', 'invited_by'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def project_name(self, obj):
+        return format_html(
+            '<a href="/admin/projects/project/{}/change/">{}</a>',
+            obj.project.id, obj.project.title[:30]
+        )
+    project_name.short_description = '프로젝트'
+    
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.short_description = '사용자'
+    
+    def role_badge(self, obj):
+        colors = {
+            'owner': '#dc3545',
+            'admin': '#fd7e14',
+            'evaluator': '#007bff',
+            'viewer': '#6c757d'
+        }
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px;">{}</span>',
+            colors.get(obj.role, '#6c757d'), obj.get_role_display()
+        )
+    role_badge.short_description = '역할'
+    
+    def joined_date(self, obj):
+        return obj.joined_at.strftime('%Y-%m-%d')
+    joined_date.short_description = '참여일'
+    
+    def permissions_display(self, obj):
+        perms = []
+        if obj.can_edit_structure: perms.append('✏️')
+        if obj.can_manage_evaluators: perms.append('👥')
+        if obj.can_view_results: perms.append('📊')
+        if obj.can_export_results: perms.append('💾')
+        return ' '.join(perms) if perms else '❌'
+    permissions_display.short_description = '권한'
+    
+    def is_active_badge(self, obj):
+        if obj.last_accessed:
+            days_ago = (timezone.now() - obj.last_accessed).days
+            if days_ago < 7:
+                return format_html('<span style="color: #28a745;">● 활성</span>')
+            elif days_ago < 30:
+                return format_html('<span style="color: #ffc107;">● 최근</span>')
+        return format_html('<span style="color: #dc3545;">● 비활성</span>')
+    is_active_badge.short_description = '활동'
+
+
+@admin.register(ComparisonMatrix) 
+class ComparisonMatrixAdmin(admin.ModelAdmin):
+    """비교 행렬 관리"""
+    list_display = [
+        'project_name', 'evaluator_name', 'criteria_name',
+        'consistency_ratio_badge', 'is_complete_badge', 'created_date'
+    ]
+    list_filter = ['is_complete', 'created_at', 'project__status']
+    search_fields = ['project__title', 'evaluator__email', 'criteria__name']
+    readonly_fields = ['consistency_ratio', 'eigenvalue', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('project', 'evaluator', 'criteria')
+        }),
+        ('행렬 데이터', {
+            'fields': ('matrix_data', 'consistency_ratio', 'eigenvalue'),
+            'description': 'JSON 형식의 쌍대비교 행렬 데이터'
+        }),
+        ('상태', {
+            'fields': ('is_complete', 'created_at', 'updated_at')
+        }),
+    )
+    
+    def project_name(self, obj):
+        return obj.project.title[:30]
+    project_name.short_description = '프로젝트'
+    
+    def evaluator_name(self, obj):
+        return obj.evaluator.email
+    evaluator_name.short_description = '평가자'
+    
+    def criteria_name(self, obj):
+        return obj.criteria.name if obj.criteria else '전체'
+    criteria_name.short_description = '기준'
+    
+    def consistency_ratio_badge(self, obj):
+        if obj.consistency_ratio is None:
+            return '-'
+        color = '#28a745' if obj.consistency_ratio < 0.1 else '#dc3545'
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{:.3f}</span>',
+            color, obj.consistency_ratio
+        )
+    consistency_ratio_badge.short_description = 'CR'
+    
+    def is_complete_badge(self, obj):
+        if obj.is_complete:
+            return format_html('<span style="color: #28a745;">✅ 완료</span>')
+        return format_html('<span style="color: #ffc107;">⏳ 진행중</span>')
+    is_complete_badge.short_description = '상태'
+    
+    def created_date(self, obj):
+        return obj.created_at.strftime('%Y-%m-%d %H:%M')
+    created_date.short_description = '생성일'
+
+
+@admin.register(SensitivityAnalysis)
+class SensitivityAnalysisAdmin(admin.ModelAdmin):
+    """민감도 분석 관리"""
+    list_display = [
+        'project_name', 'analysis_type', 'parameter_name',
+        'status_badge', 'created_by_name', 'created_date'
+    ]
+    list_filter = ['analysis_type', 'created_at']
+    search_fields = ['project__title', 'parameter', 'created_by__email']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('프로젝트 정보', {
+            'fields': ('project', 'created_by')
+        }),
+        ('분석 설정', {
+            'fields': ('analysis_type', 'parameter', 'range_min', 'range_max', 'step_size')
+        }),
+        ('분석 결과', {
+            'fields': ('results', 'summary'),
+            'classes': ('collapse',)
+        }),
+        ('메타데이터', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def project_name(self, obj):
+        return obj.project.title[:30]
+    project_name.short_description = '프로젝트'
+    
+    def parameter_name(self, obj):
+        return obj.parameter or '-'
+    parameter_name.short_description = '파라미터'
+    
+    def status_badge(self, obj):
+        if obj.results:
+            return format_html('<span style="color: #28a745;">✅ 완료</span>')
+        return format_html('<span style="color: #ffc107;">⏳ 대기</span>')
+    status_badge.short_description = '상태'
+    
+    def created_by_name(self, obj):
+        return obj.created_by.email if obj.created_by else '-'
+    created_by_name.short_description = '생성자'
+    
+    def created_date(self, obj):
+        return obj.created_at.strftime('%Y-%m-%d')
+    created_date.short_description = '생성일'
+
+
+@admin.register(ReportTemplate)
+class ReportTemplateAdmin(admin.ModelAdmin):
+    """보고서 템플릿 관리"""
+    list_display = [
+        'name', 'template_type_badge', 'format_badge',
+        'is_active_badge', 'usage_count', 'created_date'
+    ]
+    list_filter = ['template_type', 'format', 'is_active', 'created_at']
+    search_fields = ['name', 'description']
+    readonly_fields = ['usage_count', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('name', 'description', 'template_type', 'format')
+        }),
+        ('템플릿 설정', {
+            'fields': ('template_data', 'styles', 'settings')
+        }),
+        ('사용 정보', {
+            'fields': ('is_active', 'usage_count', 'created_by')
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def template_type_badge(self, obj):
+        types = {
+            'summary': ('📄', '#007bff'),
+            'detailed': ('📚', '#28a745'),
+            'executive': ('💼', '#dc3545'),
+            'academic': ('🎓', '#6f42c1')
+        }
+        icon, color = types.get(obj.template_type, ('📋', '#6c757d'))
+        return format_html(
+            '{} <span style="color: {};">{}</span>',
+            icon, color, obj.get_template_type_display()
+        )
+    template_type_badge.short_description = '유형'
+    
+    def format_badge(self, obj):
+        formats = {
+            'pdf': ('PDF', '#dc3545'),
+            'docx': ('DOCX', '#007bff'),
+            'html': ('HTML', '#28a745'),
+            'json': ('JSON', '#ffc107')
+        }
+        label, color = formats.get(obj.format, ('Unknown', '#6c757d'))
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 2px 6px; border-radius: 3px;">{}</span>',
+            color, label
+        )
+    format_badge.short_description = '형식'
+    
+    def is_active_badge(self, obj):
+        if obj.is_active:
+            return format_html('<span style="color: #28a745;">✅ 활성</span>')
+        return format_html('<span style="color: #dc3545;">❌ 비활성</span>')
+    is_active_badge.short_description = '상태'
+    
+    def created_date(self, obj):
+        return obj.created_at.strftime('%Y-%m-%d')
+    created_date.short_description = '생성일'
