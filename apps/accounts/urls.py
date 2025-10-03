@@ -5,10 +5,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from . import social_views
+from . import user_views
 
 # Create router and register viewsets
 router = DefaultRouter()
-router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'users', user_views.UserViewSet, basename='user')
+router.register(r'public-users', user_views.PublicUserViewSet, basename='public-user')
 
 urlpatterns = [
     # Include router URLs

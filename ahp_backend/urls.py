@@ -237,6 +237,12 @@ api_patterns = [
     path('projects/', include('apps.projects.urls')),
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
+    
+    # Common endpoints (health, status, etc.)
+    path('', include('apps.common.urls')),
+    
+    # Direct users endpoint (for compatibility)
+    path('users/', include('apps.accounts.urls')),
 ]
 
 # Add custom auth endpoints if available
