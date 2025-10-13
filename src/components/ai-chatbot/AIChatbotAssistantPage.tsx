@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getAIService } from '../../services/aiService';
 import { getCurrentAISettings } from '../../utils/aiInitializer';
 import AIConfiguration from '../settings/AIConfiguration';
-import EmojiIcon from '../common/EmojiIcon';
+import UIIcon, { AddIcon, DeleteIcon, SettingsIcon } from '../common/UIIcon';
 import type { User } from '../../types';
 
 interface ChatMessage {
@@ -472,7 +472,7 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
                 style={{ backgroundColor: 'var(--accent-primary)', color: 'white' }}
                 title="새 대화"
               >
-                <EmojiIcon emoji="➕" />
+                <AddIcon size="lg" hover />
               </button>
             </div>
             <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -522,7 +522,7 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
                     className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 ml-2"
                     title="삭제"
                   >
-                    <EmojiIcon emoji="🗑️" />
+                    <DeleteIcon size="sm" hover />
                   </button>
                 </div>
               </div>
@@ -565,7 +565,7 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
               style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-secondary)' }}
               title="AI 설정"
             >
-              <EmojiIcon emoji="⚙️" />
+              <SettingsIcon size="lg" hover />
             </button>
             <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${getCurrentAISettings().hasApiKey ? 'bg-green-500' : 'bg-orange-500'}`}></div>
@@ -646,7 +646,8 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
         {currentSession?.messages.length === 1 && (
           <div className="px-4 py-2 border-t" style={{ borderColor: 'var(--border-light)' }}>
             <div className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
-              <EmojiIcon emoji="🚀" className="inline mr-2" />빠른 질문
+              <UIIcon emoji="🚀" size="lg" color="primary" className="inline mr-2" />
+              빠른 질문
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {quickPrompts.slice(0, 8).map((prompt) => (
@@ -661,7 +662,7 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
                   }}
                 >
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg">{prompt.icon}</span>
+                    <UIIcon emoji={prompt.icon} preset="button" hover />
                     <span className="text-xs font-medium">{prompt.title}</span>
                   </div>
                 </button>
@@ -704,7 +705,8 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
               className="p-3 rounded-lg font-semibold text-white transition-colors disabled:opacity-50"
               style={{ backgroundColor: 'var(--accent-primary)' }}
             >
-              <EmojiIcon emoji="📤" className="inline mr-2" />전송
+              <UIIcon emoji="📤" size="lg" color="white" className="inline mr-2" />
+              전송
             </button>
           </div>
           
