@@ -45,6 +45,19 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
   const [tempCriteria, setTempCriteria] = useState<Criterion[]>([]);
   // 임시 변경사항 있는지 여부
   const [hasTempChanges, setHasTempChanges] = useState(false);
+  
+  // 템플릿 기본값 판별 함수들
+  const isTemplateName = (name: string): boolean => {
+    return /^(기준|하위기준|세부기준)\s*\d+(-\d+)*$/.test(name);
+  };
+  
+  const isTemplateDescription = (description?: string): boolean => {
+    if (!description) return false;
+    return description === '세 번째 평가 기준' || 
+           description === '상세 평가 항목' || 
+           description.includes('번째 평가 기준') || 
+           description === '평가 항목';
+  };
 
   // UI 상태
   const [showTemplates, setShowTemplates] = useState(false);
@@ -312,12 +325,15 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
   const startEditing = (criterionId: string, name: string, description: string) => {
     setEditingCriteria({
       ...editingCriteria,
-      [criterionId]: { name, description }
+      [criterionId]: { 
+        name: isTemplateName(name) ? '' : name, 
+        description: isTemplateDescription(description) ? '' : description 
+      }
     });
   };
 
-  // 인라인 편집 저장
-  const saveInlineEdit = (criterionId: string) => {
+  // 인라인 편집 저장 (자동 저장)
+  const saveInlineEdit = async (criterionId: string) => {
     if (!editingCriteria[criterionId]) return;
 
     const updateCriteria = (criteria: Criterion[]): Criterion[] => {
@@ -341,6 +357,7 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
 
     const updatedCriteria = updateCriteria(hasTempChanges ? tempCriteria : criteria);
     
+    // 즉시 UI 업데이트
     if (hasTempChanges) {
       setTempCriteria(updatedCriteria);
     } else {
@@ -353,6 +370,16 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
     const newEditingCriteria = { ...editingCriteria };
     delete newEditingCriteria[criterionId];
     setEditingCriteria(newEditingCriteria);
+
+    // 백그라운드에서 자동 저장
+    try {
+      await handleSaveCriteria();
+      console.log('✅ 자동 저장 완료');
+    } catch (error) {
+      console.error('❌ 자동 저장 실패:', error);
+      // 저장 실패 시 사용자에게 알림 (선택적)
+      // alert('자동 저장에 실패했습니다. 수동으로 저장해주세요.');
+    }
   };
 
   // 인라인 편집 취소
@@ -459,7 +486,7 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
                           });
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                        placeholder="기준 이름"
+                        placeholder={isTemplateName(criterion.name) ? criterion.name : (criterion.level === 1 ? "예시: 기술적 역량" : criterion.level === 2 ? "예시: 프로그래밍 능력" : "예시: 알고리즘 이해도")}
                       />
                       <input
                         type="text"
@@ -474,7 +501,7 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
                           });
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="설명 (선택사항)"
+                        placeholder={isTemplateDescription(criterion.description) ? criterion.description : (criterion.level === 1 ? "예시: 직무 수행에 필요한 전문 기술 수준" : criterion.level === 2 ? "예시: 코딩 및 개발 역량" : "예시: 문제해결을 위한 알고리즘 설계 능력")}
                       />
                     </div>
                   ) : (

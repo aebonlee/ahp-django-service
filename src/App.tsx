@@ -13,6 +13,7 @@ import RegisterForm from './components/auth/RegisterForm';
 import HomePage from './components/home/HomePage';
 // import WelcomeDashboard from './components/admin/WelcomeDashboard'; // 더 이상 사용하지 않음
 import Card from './components/common/Card';
+import EmojiIcon from './components/common/EmojiIcon';
 import ApiErrorModal from './components/common/ApiErrorModal';
 import TrashOverflowModal from './components/common/TrashOverflowModal';
 import PairwiseComparison from './components/comparison/PairwiseComparison';
@@ -150,6 +151,12 @@ function App() {
     
     return 'home';
   });
+
+  // activeTab 변경 추적을 위한 useEffect 추가
+  useEffect(() => {
+    console.log('🎯 App.tsx activeTab 변경됨:', activeTab);
+  }, [activeTab]);
+
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [registerMode, setRegisterMode] = useState<'service' | 'admin' | null>(null);
@@ -1211,8 +1218,8 @@ function App() {
   };
 
   useEffect(() => {
-    if (user && (activeTab === 'personal-projects' || activeTab === 'personal-service' || activeTab === 'welcome' || activeTab === 'my-projects')) {
-      console.log('🔄 사용자 로그인 확인됨 - 프로젝트 로드 시작');
+    if (user && (activeTab === 'personal-projects' || activeTab === 'personal-service' || activeTab === 'welcome' || activeTab === 'my-projects' || activeTab === 'home')) {
+      console.log('🔄 사용자 로그인 확인됨 - 프로젝트 로드 시작 (탭:', activeTab, ')');
       fetchProjects();
     } else if (user && activeTab === 'personal-users' && (user.role === 'super_admin' || user.role === 'service_admin')) {
       fetchUsers();
@@ -1225,8 +1232,17 @@ function App() {
   // 로그인 후 리다이렉트 처리를 렌더링 시점에서 직접 처리
 
   const renderContent = () => {
+    console.log('🎯 App.tsx renderContent 호출됨:', { 
+      activeTab, 
+      user: !!user, 
+      userRole: user?.role,
+      userEmail: user?.email 
+    });
+
     // 로그인하지 않은 상태에서는 메인페이지와 관련 페이지만 렌더링
     if (!user) {
+      console.log('❌ 로그인하지 않은 상태 - 기본 페이지 렌더링');
+      
       switch (activeTab) {
         case 'home':
           return <HomePage onLoginClick={handleLoginClick} />;
@@ -1331,32 +1347,33 @@ function App() {
     }
     
     // 로그인한 상태에서의 라우팅
+    console.log('✅ 로그인된 사용자 - 탭별 라우팅:', activeTab);
     switch (activeTab) {
       case 'home':
       case 'register':
       case 'welcome':
-        // 로그인 전 또는 일반 홈
-        return (
-          <PersonalServiceDashboard 
-            user={user}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onUserUpdate={setUser}
-            projects={projects}
-            onCreateProject={createProject}
-            onDeleteProject={deleteProject}
-            onFetchCriteria={fetchCriteria}
-            onCreateCriteria={createCriteria}
-            onFetchAlternatives={fetchAlternatives}
-            onCreateAlternative={createAlternative}
-            onSaveEvaluation={saveEvaluation}
-            onFetchTrashedProjects={fetchTrashedProjects}
-            onRestoreProject={restoreProject}
-            onPermanentDeleteProject={permanentDeleteProject}
-            selectedProjectId={selectedProjectId}
-            onSelectProject={setSelectedProjectId}
-          />
-        );
+        // 로그인된 사용자가 home에 접근하면 적절한 대시보드로 자동 리다이렉트
+        console.log('🔄 로그인된 사용자 home 접근 - 자동 리다이렉트 처리');
+        
+        // 사용자 역할에 따라 적절한 대시보드로 리다이렉트
+        const redirectTab = user.role === 'evaluator' ? 'evaluator-dashboard' : 'personal-service';
+        console.log(`🎯 ${user.role} 역할 → ${redirectTab}로 리다이렉트`);
+        
+        // URL도 함께 업데이트하여 주소창의 ?tab=home을 제거
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('tab', redirectTab);
+        window.history.replaceState(null, '', newUrl.toString());
+        
+        // activeTab을 즉시 변경
+        setActiveTab(redirectTab);
+        
+        // 변경된 탭으로 다시 렌더링하기 위해 임시 로딩 표시
+        return <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-lg text-gray-600">대시보드로 이동 중...</p>
+          </div>
+        </div>;
         
       case 'personal-service':
       case 'admin-dashboard':  
@@ -1884,7 +1901,7 @@ function App() {
                               title="편집"
                               type="button"
                             >
-                              ✏️
+                              <EmojiIcon emoji="📝" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -1897,7 +1914,7 @@ function App() {
                               title="모델 구축"
                               type="button"
                             >
-                              🏗️
+                              <EmojiIcon emoji="🏗️" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -1910,7 +1927,7 @@ function App() {
                               title="결과 분석"
                               type="button"
                             >
-                              📊
+                              <EmojiIcon emoji="📊" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -1925,7 +1942,7 @@ function App() {
                               title="삭제"
                               type="button"
                             >
-                              🗑️
+                              <EmojiIcon emoji="🗑️" />
                             </button>
                             <span className="text-xs text-gray-500 ml-2">
                               {new Date(project.created_at).toLocaleDateString()}
