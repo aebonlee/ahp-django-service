@@ -13,6 +13,10 @@ class CriteriaInline(admin.TabularInline):
     model = Criteria
     extra = 0
     fields = ('name', 'description', 'type', 'parent', 'order', 'level', 'is_active')
+    can_delete = True  # 삭제 기능 활성화
+    show_change_link = True  # 개별 편집 링크 표시
+    verbose_name = "기준"
+    verbose_name_plural = "기준들"
 
 
 class ProjectMemberInline(admin.TabularInline):
@@ -227,7 +231,7 @@ class CriteriaAdmin(admin.ModelAdmin):
     active_badge.short_description = '상태'
     
     # 액션 추가
-    actions = ['activate_criteria', 'deactivate_criteria', 'reset_weights']
+    actions = ['activate_criteria', 'deactivate_criteria', 'reset_weights', 'delete_selected_criteria']
     
     def activate_criteria(self, request, queryset):
         """선택된 기준 활성화"""
@@ -246,6 +250,28 @@ class CriteriaAdmin(admin.ModelAdmin):
         updated = queryset.update(weight=0.0)
         self.message_user(request, f'{updated}개의 기준 가중치를 초기화했습니다.')
     reset_weights.short_description = '선택된 기준 가중치 초기화'
+    
+    def delete_selected_criteria(self, request, queryset):
+        """선택된 기준 삭제 (하위 기준 포함)"""
+        criteria_count = queryset.count()
+        
+        # 하위 기준들도 함께 삭제
+        for criteria in queryset:
+            # 하위 기준들 찾기
+            children = Criteria.objects.filter(parent=criteria)
+            children_count = children.count()
+            
+            # 하위 기준들 먼저 삭제
+            children.delete()
+            
+            # 본 기준 삭제
+            criteria.delete()
+            
+            if children_count > 0:
+                self.message_user(request, f'"{criteria.name}" 기준과 하위 {children_count}개 기준을 삭제했습니다.')
+        
+        self.message_user(request, f'총 {criteria_count}개의 기준을 삭제했습니다.')
+    delete_selected_criteria.short_description = '선택된 기준 및 하위 기준 삭제'
 
 
 @admin.register(ProjectTemplate)
