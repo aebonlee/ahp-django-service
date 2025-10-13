@@ -79,109 +79,108 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  // 슈퍼관리자 메뉴 구조 - 서비스 메뉴와 동일하게 기본/고급/AI로 구분
+  // 슈퍼관리자 메뉴 구조 - 효율적인 시스템 관리 워크플로우
   const superAdminCategories: MenuCategory[] = [
     {
       id: 'basic',
-      title: '기본 기능',
-      icon: '📌',
+      title: '핵심 시스템 관리',
+      icon: '🎛️',
       items: [
-        { id: 'dashboard', label: '관리자 대시보드' },
-        { id: 'users', label: '사용자 관리' },
-        { id: 'all-projects', label: '전체 프로젝트' },
-        { id: 'system-info', label: '시스템 정보' },
-        { id: 'system-monitoring', label: '시스템 모니터링' },
-        { id: 'system-settings', label: '시스템 설정' }
+        { id: 'dashboard', label: '🏠 시스템 대시보드' },
+        { id: 'users', label: '👥 사용자 관리' },
+        { id: 'all-projects', label: '🗂️ 전체 프로젝트 관리' },
+        { id: 'system-monitoring', label: '📊 실시간 시스템 모니터링' },
+        { id: 'system-info', label: '💻 시스템 정보' },
+        { id: 'system-settings', label: '⚙️ 시스템 설정' }
       ]
     },
     {
       id: 'advanced', 
-      title: '고급 기능',
-      icon: '🚀',
+      title: '고급 시스템 도구',
+      icon: '⚡',
       items: [
-        { id: 'database', label: 'DB 관리' },
-        { id: 'backup', label: '백업/복원' },
-        { id: 'audit', label: '감사 로그' },
-        { id: 'connection-test', label: '연결 테스트' },
-        { id: 'django-admin', label: 'Django 관리자' },
-        { id: 'mode-switch', label: '모드 전환' }
+        { id: 'database', label: '🗄️ 데이터베이스 관리' },
+        { id: 'backup', label: '💾 백업 및 복원' },
+        { id: 'audit', label: '📋 감사 로그' },
+        { id: 'connection-test', label: '🔗 연결 테스트' },
+        { id: 'django-admin', label: '🐍 Django 관리 콘솔' },
+        { id: 'system-reset', label: '🔄 시스템 초기화' }
       ]
     },
     {
       id: 'ai',
-      title: 'AI 지원',
-      icon: '🤖',
+      title: 'AI 시스템 관리',
+      icon: '🧠',
       items: [
-        { id: 'ai-system-monitor', label: 'AI 시스템 모니터' },
-        { id: 'ai-usage-analytics', label: 'AI 사용 분석' },
-        { id: 'ai-model-management', label: 'AI 모델 관리' },
-        { id: 'ai-training-data', label: '학습 데이터 관리' }
+        { id: 'ai-system-monitor', label: '🤖 AI 시스템 모니터' },
+        { id: 'ai-usage-analytics', label: '📈 AI 사용량 분석' },
+        { id: 'ai-model-management', label: '🔧 AI 모델 관리' },
+        { id: 'ai-training-data', label: '📚 학습 데이터 관리' }
       ]
     },
     {
       id: 'super-admin',
-      title: '슈퍼 관리자',
+      title: '관리자 역할 전환',
       icon: '👑',
       items: [
-        { id: 'super-admin-dashboard', label: '슈퍼 관리자 대시보드' },
-        { id: 'role-switch-admin', label: '서비스 관리자로 전환' },
-        { id: 'role-switch-user', label: '서비스 사용자로 전환' },
-        { id: 'role-switch-evaluator', label: '평가자로 전환' },
-        { id: 'system-reset', label: '시스템 초기화' }
+        { id: 'super-admin-dashboard', label: '👑 슈퍼 관리자 전용' },
+        { id: 'role-switch-admin', label: '🔄 서비스 관리자 모드' },
+        { id: 'role-switch-user', label: '🔄 서비스 사용자 모드' },
+        { id: 'role-switch-evaluator', label: '🔄 평가자 모드' }
       ]
     }
   ];
 
-  // 서비스 관리자/사용자 메뉴 구조
+  // 서비스 관리자/사용자 메뉴 구조 - 연구자 워크플로우 최적화
   const serviceAdminCategories: MenuCategory[] = [
     {
       id: 'basic',
-      title: '기본 기능',
-      icon: '📌',
+      title: '핵심 연구 워크플로우',
+      icon: '🎯',
       items: [
-        { id: 'dashboard', label: '내 대시보드' },
-        { id: 'my-projects', label: '내 프로젝트' },
-        { id: 'project-creation', label: '새 프로젝트' },
-        { id: 'model-builder', label: '모델 구축' },
-        { id: 'evaluator-management', label: '평가자 관리' },
-        { id: 'results-analysis', label: '결과 분석' },
-        { id: 'export-reports', label: '보고서 내보내기' }
+        { id: 'dashboard', label: '📊 연구자 대시보드' },
+        { id: 'my-projects', label: '📁 내 연구 프로젝트' },
+        { id: 'project-creation', label: '➕ 새 연구 시작' },
+        { id: 'model-builder', label: '🏗️ AHP 모델 설계' },
+        { id: 'evaluator-management', label: '👥 평가자 관리' },
+        { id: 'progress-monitoring', label: '📈 데이터 수집 모니터링' },
+        { id: 'results-analysis', label: '📊 결과 분석' },
+        { id: 'export-reports', label: '📄 연구보고서 출력' }
       ]
     },
     {
       id: 'advanced',
-      title: '고급 기능',
-      icon: '🚀',
+      title: '고급 연구 도구',
+      icon: '🔬',
       items: [
-        { id: 'demographic-survey', label: '인구통계 설문' },
-        { id: 'evaluation-test', label: '평가 테스트' },
-        { id: 'progress-monitoring', label: '진행률 모니터링' },
-        { id: 'workshop-management', label: '워크숍 관리' },
-        { id: 'decision-support-system', label: '의사결정 지원' },
-        { id: 'personal-settings', label: '개인 설정' }
+        { id: 'workshop-management', label: '🏛️ 전문가 워크숍' },
+        { id: 'demographic-survey', label: '📋 표본 특성 조사' },
+        { id: 'decision-support-system', label: '⚖️ 의사결정 시뮬레이션' },
+        { id: 'evaluation-test', label: '🧪 평가 도구 검증' },
+        { id: 'personal-settings', label: '⚙️ 연구환경 설정' }
       ]
     },
     {
       id: 'research',
-      title: '연구 논문을 위한 AHP분석',
+      title: '연구 방법론 가이드',
       icon: '📚',
       items: [
-        { id: 'researcher-guide', label: '연구자 가이드' },
-        { id: 'evaluator-guide', label: '평가자 가이드' },
-        { id: 'ai-ahp-methodology', label: 'AHP 방법론' },
-        { id: 'ai-fuzzy-methodology', label: '퍼지 AHP' }
+        { id: 'ai-ahp-methodology', label: '📖 AHP 이론 및 절차' },
+        { id: 'ai-fuzzy-methodology', label: '🔀 퍼지 AHP 방법론' },
+        { id: 'researcher-guide', label: '👨‍🔬 연구자 실무 가이드' },
+        { id: 'evaluator-guide', label: '👨‍💼 평가자 참여 가이드' }
       ]
     },
     {
       id: 'ai',
-      title: 'AI 지원',
+      title: 'AI 연구 지원',
       icon: '🤖',
       items: [
-        { id: 'ai-paper-assistant', label: 'AI 논문 도우미' },
-        { id: 'ai-results-interpretation', label: '결과 해석' },
-        { id: 'ai-quality-validation', label: '품질 검증' },
-        { id: 'ai-materials-generation', label: 'AI활용 학술 자료' },
-        { id: 'ai-chatbot-assistant', label: 'AI 챗봇' }
+        { id: 'ai-paper-assistant', label: '📝 AI 논문 작성 도우미' },
+        { id: 'ai-results-interpretation', label: '📊 결과 해석 지원' },
+        { id: 'ai-quality-validation', label: '✅ 연구 품질 검증' },
+        { id: 'ai-materials-generation', label: '📚 학술자료 생성' },
+        { id: 'ai-chatbot-assistant', label: '💬 연구 상담 챗봇' }
       ]
     }
   ];
@@ -223,33 +222,36 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
   }
 
-  // 평가자 메뉴 구조
+  // 평가자 메뉴 구조 - 평가 프로세스 중심
   const evaluatorCategories: MenuCategory[] = [
     {
       id: 'evaluation',
-      title: '평가 작업',
+      title: '평가 수행',
+      icon: '⚖️',
       items: [
-        { id: 'dashboard', label: '평가자 홈' },
-        { id: 'assigned-projects', label: '할당된 프로젝트' },
-        { id: 'pairwise-evaluation', label: '쌍대비교 평가' },
-        { id: 'direct-evaluation', label: '직접입력 평가' },
-        { id: 'consistency-check', label: '일관성 검증' }
+        { id: 'dashboard', label: '🏠 평가자 대시보드' },
+        { id: 'assigned-projects', label: '📋 참여 연구 프로젝트' },
+        { id: 'pairwise-evaluation', label: '⚖️ 쌍대비교 평가' },
+        { id: 'direct-evaluation', label: '📝 직접입력 평가' },
+        { id: 'consistency-check', label: '✅ 일관성 검증' }
       ]
     },
     {
       id: 'history',
       title: '평가 이력',
+      icon: '📊',
       items: [
-        { id: 'my-evaluations', label: '내 평가 현황' },
-        { id: 'evaluation-history', label: '평가 이력' }
+        { id: 'my-evaluations', label: '📈 내 평가 현황' },
+        { id: 'evaluation-history', label: '📝 평가 완료 이력' }
       ]
     },
     {
       id: 'support',
-      title: '지원',
+      title: '평가 지원',
+      icon: '🎯',
       items: [
-        { id: 'evaluation-guide', label: '평가 가이드' },
-        { id: 'evaluator-settings', label: '평가자 설정' }
+        { id: 'evaluation-guide', label: '📖 평가 참여 가이드' },
+        { id: 'evaluator-settings', label: '⚙️ 평가자 설정' }
       ]
     }
   ];
@@ -402,16 +404,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                   marginBottom: 'var(--space-6)'
                 }}>
               {isSuperAdminMode
-                ? '시스템 관리자'
+                ? '🎛️ 시스템 관리 콘솔'
                 : userRole === 'super_admin'
-                ? '개인 관리자 서비스'
+                ? '🔬 AHP 연구 플랫폼'
                 : userRole === 'service_admin'
-                ? '개인 관리자 서비스'
+                ? '🔬 AHP 연구 플랫폼'
                 : userRole === 'service_user'
-                ? (viewMode === 'evaluator' ? '평가자 모드' : '서비스 사용자')
+                ? (viewMode === 'evaluator' ? '⚖️ 평가자 워크스페이스' : '🔬 AHP 연구 플랫폼')
                 : userRole === 'evaluator'
-                ? '평가자'
-                : '개인 관리자 서비스'
+                ? '⚖️ 평가자 워크스페이스'
+                : '🔬 AHP 연구 플랫폼'
               }
             </h2>
             
@@ -601,8 +603,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
-                  <span className="mr-2">{isSuperAdminMode ? '👤' : '👑'}</span>
-                  <span>{isSuperAdminMode ? '개인 서비스 모드' : '슈퍼 관리자 모드'}</span>
+                  <span className="mr-2">{isSuperAdminMode ? '🔬' : '🎛️'}</span>
+                  <span>{isSuperAdminMode ? '연구 플랫폼 모드' : '시스템 관리 모드'}</span>
                 </button>
               </div>
             );

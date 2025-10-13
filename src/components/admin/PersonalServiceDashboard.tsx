@@ -12,7 +12,7 @@ import ProjectCreation from './ProjectCreation';
 import CriteriaManagement from './CriteriaManagement';
 import AlternativeManagement from './AlternativeManagement';
 import EvaluatorAssignment from './EvaluatorAssignment';
-import EnhancedEvaluatorManagement from './EnhancedEvaluatorManagement';
+import EnhancedEvaluatorManagement from '../evaluator/EnhancedEvaluatorManagement';
 import SurveyLinkManager from './SurveyLinkManager';
 import ModelFinalization from './ModelFinalization';
 import WorkflowStageIndicator, { WorkflowStage } from '../workflow/WorkflowStageIndicator';
@@ -1049,14 +1049,18 @@ const PersonalServiceDashboard: React.FC<PersonalServiceProps> = ({
           <ModelFinalization 
             projectId={selectedProjectId} 
             onFinalize={() => {
-              // 모델 확정 후 평가자 관리 페이지로 이동
-              console.log('✅ 모델 구축 완료, 평가자 관리로 이동:', selectedProjectId);
+              // 모델 확정 후 로그 출력
+              console.log('✅ 모델 구축 완료:', selectedProjectId);
+              setCurrentStep('overview');
+            }}
+            onNavigateToEvaluators={() => {
+              // 평가자 관리 페이지로 자동 이동
+              console.log('🔄 평가자 관리 페이지로 이동:', selectedProjectId);
               if (externalOnTabChange) {
                 externalOnTabChange('evaluators');
               } else {
                 setActiveMenu('evaluators');
               }
-              setCurrentStep('overview');
             }}
             isReadyToFinalize={true}
           />
@@ -2797,6 +2801,7 @@ ${project?.title} - ${type} 프레젠테이션
       <EnhancedEvaluatorManagement 
         projectId={selectedProjectId || undefined}
         projectName={currentProject?.title || '프로젝트'}
+        onClose={() => handleTabChange('dashboard')}
       />
     );
   };
