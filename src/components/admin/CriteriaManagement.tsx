@@ -68,21 +68,32 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
       setIsLoading(true);
       const loadedCriteria = await cleanDataService.getCriteria(projectId);
       
-      // parent_id, level, order 필드 정규화
-      const normalizedCriteria = (loadedCriteria || []).map((c, index) => ({
-        id: c.id || `criterion_${Date.now()}_${index}`,
-        name: c.name,
-        description: c.description,
-        parent_id: c.parent_id || null,
-        level: c.level || 1,
-        order: c.order || index + 1,
-        weight: c.weight || 1,
-        type: 'criteria' as const,
-        children: []
-      }));
+      console.log('🔍 백엔드에서 로드된 기준 데이터:', loadedCriteria);
+      
+      // parent_id, parent, level, order 필드 정규화
+      const normalizedCriteria = (loadedCriteria || []).map((c, index) => {
+        // 백엔드에서 parent 또는 parent_id 필드 모두 처리
+        const parentId = c.parent || c.parent_id || null;
+        
+        return {
+          id: c.id || `criterion_${Date.now()}_${index}`,
+          name: c.name,
+          description: c.description,
+          parent_id: parentId,
+          level: c.level || 1,
+          order: c.order || c.position || index + 1,
+          weight: c.weight || 1,
+          type: 'criteria' as const,
+          children: []
+        };
+      });
+      
+      console.log('🔄 정규화된 기준 데이터:', normalizedCriteria);
       
       // 계층 구조 구성
       const hierarchicalCriteria = buildHierarchy(normalizedCriteria);
+      
+      console.log('🌳 구성된 계층구조:', hierarchicalCriteria);
       
       setCriteria(hierarchicalCriteria);
       setSavedCriteria(hierarchicalCriteria);
@@ -99,6 +110,8 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
 
   // 계층 구조 구성
   const buildHierarchy = (flatCriteria: Criterion[]): Criterion[] => {
+    console.log('🔨 계층구조 구성 시작:', flatCriteria);
+    
     const criteriaMap = new Map<string, Criterion>();
     const rootCriteria: Criterion[] = [];
 
@@ -107,19 +120,24 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
       criteriaMap.set(criterion.id, { ...criterion, children: [] });
     });
 
+    console.log('📋 기준 맵 생성 완료:', Array.from(criteriaMap.keys()));
+
     // 계층 구조 구성
     flatCriteria.forEach(criterion => {
       const criterionObj = criteriaMap.get(criterion.id)!;
       
+      // parent_id가 있고 해당 부모가 맵에 존재하는 경우
       if (criterion.parent_id && criteriaMap.has(criterion.parent_id)) {
         const parent = criteriaMap.get(criterion.parent_id);
         if (parent) {
           parent.children = parent.children || [];
           parent.children.push(criterionObj);
+          console.log(`🔗 자식 연결: ${criterionObj.name} → ${parent.name}`);
         }
       } else {
         // 부모가 없거나 레벨 1인 경우 루트로 처리
         rootCriteria.push(criterionObj);
+        console.log(`🌳 루트 기준: ${criterionObj.name} (level: ${criterionObj.level})`);
       }
     });
 
@@ -134,6 +152,8 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
     };
     
     sortByOrder(rootCriteria);
+    
+    console.log('✅ 계층구조 구성 완료:', rootCriteria);
     return rootCriteria;
   };
 
@@ -245,10 +265,20 @@ const CriteriaManagement: React.FC<CriteriaManagementProps> = ({
           weight: criterion.weight || 1,
           type: 'criteria' as const,
           // parent 필드는 실제 생성된 부모 기준의 ID를 사용
-          ...(criterion.parent_id && createdCriteriaMap.has(criterion.parent_id) 
-            ? { parent: createdCriteriaMap.get(criterion.parent_id).id }
-            : {})
+          ...(criterion.parent_id 
+            ? (createdCriteriaMap.has(criterion.parent_id) 
+              ? { parent: createdCriteriaMap.get(criterion.parent_id).id, parent_id: createdCriteriaMap.get(criterion.parent_id).id }
+              : { parent: criterion.parent_id, parent_id: criterion.parent_id })
+            : { parent: null, parent_id: null })
         };
+        
+        console.log('💾 저장할 기준 데이터:', {
+          name: criteriaData.name,
+          level: criteriaData.level,
+          parent_id: criterion.parent_id,
+          parent: criteriaData.parent,
+          originalId: criterion.id
+        });
         
         const result = await cleanDataService.createCriteria(criteriaData);
         if (!result) {
