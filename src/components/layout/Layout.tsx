@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import ImprovedSidebar from './ImprovedSidebar';
 
 import type { User } from '../../types';
 
@@ -59,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({
       <div className="flex">
         {user ? (
           <>
-            <ImprovedSidebar
+            <Sidebar
               isCollapsed={sidebarCollapsed}
               userRole={user.role}
               viewMode={viewMode}
