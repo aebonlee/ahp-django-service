@@ -481,63 +481,62 @@ const EvaluationTest: React.FC = () => {
         </p>
       </div>
 
-      {/* 테스트 모드 선택 */}
-      <div className="ui-card p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <UIIcon emoji="⚙️" size="lg" color="secondary" />
-          <h3 className="text-lg font-semibold text-gray-900">테스트 모드 선택</h3>
-        </div>
-        
-        <div className="flex items-center justify-center gap-8">
-          <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-            <input 
-              type="radio" 
-              checked={testMode === 'preview'}
-              onChange={() => setTestMode('preview')}
-              className="w-4 h-4 text-blue-600"
-            />
-            <div className="flex items-center gap-2">
-              <UIIcon emoji="👁️" size="lg" color="info" />
-              <span className="font-medium text-gray-900">미리보기 모드</span>
-            </div>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-            <input 
-              type="radio"
-              checked={testMode === 'simulate'}
-              onChange={() => setTestMode('simulate')}
-              className="w-4 h-4 text-blue-600"
-            />
-            <div className="flex items-center gap-2">
-              <UIIcon emoji="🚀" size="lg" color="success" />
-              <span className="font-medium text-gray-900">시뮬레이션 모드</span>
-            </div>
-          </label>
-        </div>
+      {/* 테스트 모드 선택 - Workshop Management 스타일 탭 */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex flex-wrap gap-4">
+          {[
+            { id: 'preview', name: '미리보기', icon: '👁️', desc: '평가자 화면 구성과 흐름 확인' },
+            { id: 'simulate', name: '시뮬레이션', icon: '🚀', desc: '실제 평가 과정 시뮬레이션' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setTestMode(tab.id as 'preview' | 'simulate')}
+              className={`flex-1 min-w-0 py-6 px-6 border-b-3 font-semibold text-base rounded-t-lg transition-all duration-200 ${
+                testMode === tab.id
+                  ? 'border-blue-500 text-blue-700 bg-blue-50 shadow-sm'
+                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-center">
+                <div className="text-lg">
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.name}
+                </div>
+                <div className="text-sm text-gray-500 mt-2 font-normal">{tab.desc}</div>
+              </div>
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* 진행 단계 표시 */}
-      <div className="flex items-center justify-center gap-2">
-        {['select', 'demographic', 'evaluation', 'result'].map((step, idx) => (
-          <React.Fragment key={step}>
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-              currentStep === step 
-                ? 'bg-blue-500 text-white' 
-                : idx < ['select', 'demographic', 'evaluation', 'result'].indexOf(currentStep)
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
-            }`}>
-              {idx + 1}
-            </div>
-            {idx < 3 && (
-              <div className={`w-16 h-1 ${
-                idx < ['select', 'demographic', 'evaluation', 'result'].indexOf(currentStep)
-                  ? 'bg-green-500'
-                  : 'bg-gray-200'
-              }`} />
-            )}
-          </React.Fragment>
-        ))}
+      {/* 프로세스 단계 - Decision Support System 스타일 */}
+      <div className="bg-white border rounded-lg p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {[
+            { id: 'select', name: '프로젝트선택', icon: '📋', desc: '실제 프로젝트 데이터 선택' },
+            { id: 'demographic', name: '설문조사', icon: '📊', desc: '인구통계학적 정보 수집' },
+            { id: 'evaluation', name: '평가진행', icon: '⚖️', desc: 'AHP 쌍대비교 또는 직접입력' },
+            { id: 'result', name: '결과확인', icon: '📈', desc: '평가 결과 및 우선순위' }
+          ].map((step, index) => (
+            <React.Fragment key={step.id}>
+              <button
+                onClick={() => setCurrentStep(step.id as any)}
+                className={`flex-1 min-w-0 flex flex-col items-center py-6 px-4 rounded-lg transition-all duration-200 ${
+                  currentStep === step.id 
+                    ? 'bg-blue-50 text-blue-700 shadow-md border-2 border-blue-300' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-2 border-transparent'
+                }`}
+              >
+                <div className="text-3xl mb-2">{step.icon}</div>
+                <div className="text-base font-semibold mb-1">{step.name}</div>
+                <div className="text-xs text-center leading-tight px-1">{step.desc}</div>
+              </button>
+              {index < 3 && (
+                <div className="hidden lg:block flex-shrink-0 w-8 h-px bg-gray-300"></div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
 
       {/* 단계별 화면 */}
@@ -546,40 +545,138 @@ const EvaluationTest: React.FC = () => {
       {currentStep === 'evaluation' && <EvaluationScreen />}
       {currentStep === 'result' && <ResultScreen />}
 
-      {/* 도움말 */}
-      <div className="ui-card p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <UIIcon emoji="💡" size="lg" color="warning" />
-          <h3 className="text-lg font-semibold text-gray-900">평가 테스트 가이드</h3>
-        </div>
-        
-        <div className="space-y-4 text-sm text-gray-600">
-          <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-            <UIIcon emoji="👁️" size="lg" color="info" />
-            <div>
-              <div className="font-semibold text-blue-900 mb-1">미리보기 모드</div>
-              <p className="text-blue-800">평가자가 보게 될 화면의 구성과 흐름을 확인합니다.</p>
-            </div>
+      {/* 포괄적인 가이드 - Decision Support System 스타일 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="ui-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <UIIcon emoji="📋" size="lg" color="primary" />
+            <h3 className="text-lg font-semibold text-gray-900">테스트 모드 가이드</h3>
           </div>
           
-          <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-            <UIIcon emoji="🚀" size="lg" color="success" />
-            <div>
-              <div className="font-semibold text-green-900 mb-1">시뮬레이션 모드</div>
-              <p className="text-green-800">실제 평가 과정을 시뮬레이션하여 동작을 테스트합니다.</p>
+          <div className="space-y-4 text-sm">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-blue-800 mb-2">미리보기 모드</h4>
+              <div className="space-y-2 text-blue-700">
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">1</span>
+                  화면 구성과 흐름 확인
+                </div>
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">2</span>
+                  UI/UX 요소 검토
+                </div>
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">3</span>
+                  평가자 관점에서 검증
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <div className="flex items-start gap-3">
-              <UIIcon emoji="🎯" size="lg" color="warning" />
-              <div>
-                <div className="font-semibold text-yellow-900 mb-1">팁</div>
-                <p className="text-yellow-800">실제 평가 링크는 '평가자 관리' 메뉴에서 생성할 수 있습니다.</p>
+
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <h4 className="font-medium text-green-800 mb-2">시뮬레이션 모드</h4>
+              <div className="space-y-2 text-green-700">
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">1</span>
+                  실제 데이터 연동 테스트
+                </div>
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">2</span>
+                  진행률 및 상태 변화 확인
+                </div>
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">3</span>
+                  결과 생성 프로세스 검증
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="ui-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <UIIcon emoji="🎯" size="lg" color="warning" />
+            <h3 className="text-lg font-semibold text-gray-900">베스트 프랙티스</h3>
+          </div>
+          
+          <div className="space-y-4 text-sm">
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <h4 className="font-medium text-purple-800 mb-2">평가 전 체크리스트</h4>
+              <ul className="space-y-1 text-purple-700 text-xs">
+                <li className="flex items-start">
+                  <span className="mr-2">✓</span>
+                  <span>프로젝트 기준과 대안이 충분히 설정되었는가?</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">✓</span>
+                  <span>평가자들이 충분한 사전 정보를 갖고 있는가?</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">✓</span>
+                  <span>평가 소요 시간이 적절하게 계획되었는가?</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <h4 className="font-medium text-orange-800 mb-2">주의사항</h4>
+              <ul className="space-y-1 text-orange-700 text-xs">
+                <li className="flex items-start">
+                  <span className="mr-2">⚠️</span>
+                  <span>실제 평가 링크는 '평가자 관리'에서 생성</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">⚠️</span>
+                  <span>테스트 데이터는 실제 평가에 영향 없음</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">⚠️</span>
+                  <span>브라우저 호환성 사전 확인 필요</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <UIIcon emoji="💡" size="sm" color="warning" />
+                <div className="text-xs text-yellow-800">
+                  <div className="font-medium mb-1">프로 팁</div>
+                  <div>평가자 교육용 자료로 미리보기 화면을 캡처하여 활용하세요.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 네비게이션 버튼 - Decision Support System 스타일 */}
+      <div className="flex justify-between">
+        <SecondaryButton 
+          iconEmoji="⬅️"
+          disabled={currentStep === 'select'}
+          onClick={() => {
+            const steps = ['select', 'demographic', 'evaluation', 'result'];
+            const currentIndex = steps.indexOf(currentStep);
+            if (currentIndex > 0) {
+              setCurrentStep(steps[currentIndex - 1] as any);
+            }
+          }}
+        >
+          이전 단계
+        </SecondaryButton>
+        
+        <PrimaryButton 
+          iconEmoji="➡️"
+          disabled={currentStep === 'result'}
+          onClick={() => {
+            const steps = ['select', 'demographic', 'evaluation', 'result'];
+            const currentIndex = steps.indexOf(currentStep);
+            if (currentIndex < steps.length - 1) {
+              setCurrentStep(steps[currentIndex + 1] as any);
+            }
+          }}
+        >
+          다음 단계
+        </PrimaryButton>
       </div>
     </div>
   );
