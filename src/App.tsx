@@ -4,6 +4,7 @@ import './App.css';
 import sessionService from './services/sessionService';
 import authService from './services/authService';
 import cleanDataService from './services/dataService_clean';
+import { initializeAIWithProvidedKey, setAPIKeyDirectly } from './utils/aiInitializer';
 import type { User, UserRole } from './types';
 import Layout from './components/layout/Layout';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -396,6 +397,36 @@ function App() {
         console.log('✅ 백엔드 연결 성공');
         setBackendStatus('available');
         validateSession(); // 비동기로 세션 검증
+        
+        // AI 서비스 초기화 (고정 API 키 사용)
+        try {
+          console.log('🤖 AI 서비스 초기화 중... (고정 API 키 사용)');
+          
+          // 환경변수에서 ChatGPT API 키 로드
+          const FIXED_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+          
+          // API 키를 로컬 스토리지에 저장하고 AI 서비스 초기화
+          const aiService = setAPIKeyDirectly(FIXED_API_KEY, 'openai');
+          
+          if (aiService) {
+            console.log('✅ AI 서비스 초기화 성공 (고정 API 키)');
+            // API 키 유효성 검증
+            try {
+              const isValid = await aiService.validateAPIKey();
+              if (isValid) {
+                console.log('✅ ChatGPT API 키 유효성 검증 완료');
+              } else {
+                console.warn('⚠️ ChatGPT API 키 유효성 검증 실패');
+              }
+            } catch (validationError) {
+              console.error('❌ API 키 검증 중 오류:', validationError);
+            }
+          } else {
+            console.error('❌ AI 서비스 초기화 실패');
+          }
+        } catch (error) {
+          console.error('❌ AI 서비스 초기화 중 예외 발생:', error);
+        }
       } else {
         console.log('⚠️ 백엔드 응답 오류');
         setBackendStatus('unavailable');
