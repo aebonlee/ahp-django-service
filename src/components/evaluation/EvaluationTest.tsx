@@ -470,17 +470,6 @@ const EvaluationTest: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <UIIcon emoji="🧪" size="3xl" color="primary" />
-          <h1 className="text-3xl font-bold text-gray-900">평가 테스트</h1>
-        </div>
-        <p className="text-gray-600 text-lg">
-          평가자 화면을 미리 확인하고 테스트해보세요
-        </p>
-      </div>
-
       {/* 테스트 모드 선택 - Workshop Management 스타일 탭 */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex flex-wrap gap-4">
