@@ -469,34 +469,49 @@ const EvaluationTest: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* 테스트 모드 선택 - Workshop Management 스타일 탭 */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex flex-wrap gap-4">
-          {[
-            { id: 'preview', name: '미리보기', icon: '👁️', desc: '평가자 화면 구성과 흐름 확인' },
-            { id: 'simulate', name: '시뮬레이션', icon: '🚀', desc: '실제 평가 과정 시뮬레이션' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setTestMode(tab.id as 'preview' | 'simulate')}
-              className={`flex-1 min-w-0 py-6 px-6 border-b-3 font-semibold text-base rounded-t-lg transition-all duration-200 ${
-                testMode === tab.id
-                  ? 'border-blue-500 text-blue-700 bg-blue-50 shadow-sm'
-                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-lg">
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.name}
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
+      {/* 헤더 - EnhancedEvaluatorManagement 스타일 */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    평가 테스트
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    평가자 화면을 미리 확인하고 테스트해보세요
+                  </p>
                 </div>
-                <div className="text-sm text-gray-500 mt-2 font-normal">{tab.desc}</div>
               </div>
-            </button>
-          ))}
-        </nav>
+
+              {/* 테스트 모드 선택 */}
+              <div className="flex space-x-2">
+                {[
+                  { key: 'preview', label: '미리보기', icon: '👁️' },
+                  { key: 'simulate', label: '시뮬레이션', icon: '🚀' }
+                ].map((mode) => (
+                  <button
+                    key={mode.key}
+                    onClick={() => setTestMode(mode.key as 'preview' | 'simulate')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      testMode === mode.key
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {mode.icon} {mode.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* 메인 콘텐츠 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       {/* 프로세스 단계 - Decision Support System 스타일 */}
       <div className="bg-white border rounded-lg p-4">
@@ -666,6 +681,7 @@ const EvaluationTest: React.FC = () => {
         >
           다음 단계
         </PrimaryButton>
+      </div>
       </div>
     </div>
   );
