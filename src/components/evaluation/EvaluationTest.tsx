@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UIIcon from '../common/UIIcon';
+import PageHeader from '../common/PageHeader';
 import { PrimaryButton, SecondaryButton } from '../common/UIButton';
 import dataService from '../../services/dataService_clean';
 import { ProjectData, CriteriaData, AlternativeData } from '../../services/api';
@@ -474,59 +475,38 @@ const EvaluationTest: React.FC<EvaluationTestProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-      {/* 헤더 - "내 프로젝트" 스타일 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                {onBack && (
-                  <button 
-                    onClick={onBack}
-                    className="mr-4 text-gray-500 hover:text-gray-700 transition-colors text-2xl"
-                  >
-                    ←
-                  </button>
-                )}
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    <span className="text-4xl mr-3">🧪</span>평가 테스트
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    평가자 화면을 미리 확인하고 테스트해보세요
-                  </p>
-                </div>
-              </div>
-
-              {/* 테스트 모드 선택 */}
-              <div className="flex space-x-2">
-                {[
-                  { key: 'preview', label: '미리보기', icon: '👁️' },
-                  { key: 'simulate', label: '시뮬레이션', icon: '🚀' }
-                ].map((mode) => (
-                  <button
-                    key={mode.key}
-                    onClick={() => setTestMode(mode.key as 'preview' | 'simulate')}
-                    className={`p-5 lg:p-6 text-xl lg:text-2xl transition-colors font-semibold inline-flex items-center justify-center cursor-pointer rounded-lg ${
-                      testMode === mode.key
-                        ? 'bg-blue-600 text-white border border-blue-600 shadow-lg'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
-                    }`}
-                    style={{
-                      transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      padding: '12px 24px',
-                      fontSize: '0.875rem',
-                      minHeight: '44px'
-                    }}
-                  >
-                    {mode.icon} {mode.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <PageHeader
+        title="평가 테스트"
+        description="평가자 화면을 미리 확인하고 테스트해보세요"
+        icon="🧪"
+        onBack={onBack}
+        actions={
+          <div className="flex space-x-2">
+            {[
+              { key: 'preview', label: '미리보기', icon: '👁️' },
+              { key: 'simulate', label: '시뮬레이션', icon: '🚀' }
+            ].map((mode) => (
+              <button
+                key={mode.key}
+                onClick={() => setTestMode(mode.key as 'preview' | 'simulate')}
+                className={`p-5 lg:p-6 text-xl lg:text-2xl transition-colors font-semibold inline-flex items-center justify-center cursor-pointer rounded-lg ${
+                  testMode === mode.key
+                    ? 'bg-blue-600 text-white border border-blue-600 shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
+                }`}
+                style={{
+                  transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  padding: '12px 24px',
+                  fontSize: '0.875rem',
+                  minHeight: '44px'
+                }}
+              >
+                {mode.icon} {mode.label}
+              </button>
+            ))}
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* 메인 콘텐츠 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UIIcon from '../common/UIIcon';
+import PageHeader from '../common/PageHeader';
 import { PrimaryButton, SecondaryButton, SuccessButton, DangerButton } from '../common/UIButton';
 import { useColorTheme, ColorTheme } from '../../hooks/useColorTheme';
 import { API_BASE_URL } from '../../config/api';
@@ -396,42 +397,22 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-      {/* 헤더 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <button 
-                  onClick={onBack || (() => window.history.back())}
-                  className="mr-4 text-gray-500 hover:text-gray-700 transition-colors text-2xl"
-                >
-                  ←
-                </button>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    <span className="text-4xl mr-3">⚙️</span>개인 설정
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    계정 정보와 개인 환경설정을 관리합니다
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <SuccessButton
-                  onClick={saveSettingsToAPI}
-                  disabled={saveStatus === 'saving'}
-                  className="flex items-center space-x-2"
-                >
-                  <UIIcon emoji="💾" size="lg" color="white" />
-                  <span>{getSaveStatusText()}</span>
-                </SuccessButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="개인 설정"
+        description="계정 정보와 개인 환경설정을 관리합니다"
+        icon="⚙️"
+        onBack={onBack || (() => window.history.back())}
+        actions={
+          <SuccessButton
+            onClick={saveSettingsToAPI}
+            disabled={saveStatus === 'saving'}
+            className="flex items-center space-x-2"
+          >
+            <UIIcon emoji="💾" size="lg" color="white" />
+            <span>{getSaveStatusText()}</span>
+          </SuccessButton>
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UIIcon from '../common/UIIcon';
+import PageHeader from '../common/PageHeader';
 import { PrimaryButton, SecondaryButton, SuccessButton, DangerButton } from '../common/UIButton';
 import cleanDataService from '../../services/dataService_clean';
 import type { User } from '../../types';
@@ -619,25 +620,11 @@ const AIPaperGenerationPage: React.FC<AIPaperGenerationPageProps> = ({ user }) =
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-      {/* 헤더 - "내 프로젝트" 스타일 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                    <span className="text-4xl mr-3">🤖</span>AI 논문 생성
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    AHP 프로젝트 데이터를 기반으로 학술 논문을 자동 생성합니다
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="AI 논문 생성"
+        description="AHP 프로젝트 데이터를 기반으로 학술 논문을 자동 생성합니다"
+        icon="🤖"
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 소개 섹션 */}
