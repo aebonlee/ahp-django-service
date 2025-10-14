@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import PageHeader from '../common/PageHeader';
 import cleanDataService from '../../services/dataService_clean';
 import type { User } from '../../types';
 
@@ -823,8 +824,14 @@ ${selectedProject?.title} AHP 분석 연구
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
+      <PageHeader
+        title="AI 학술 자료 생성"
+        description="AHP 프로젝트 결과를 기반으로 다양한 학술 자료를 AI가 자동 생성합니다"
+        icon="📚"
+      />
+      
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* 탭 네비게이션 */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
