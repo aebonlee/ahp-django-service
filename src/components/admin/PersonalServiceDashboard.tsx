@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import UIIcon, { SearchIcon } from '../common/UIIcon';
+import ModernPersonalServiceDashboard from './ModernPersonalServiceDashboard';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import exportService from '../../services/exportService';
 import MyProjects from './MyProjects';
@@ -3802,9 +3803,25 @@ ${project?.title} - ${type} 프레젠테이션
             />
           );
         } else {
-          console.log('👑 관리자용 대시보드 렌더링 - renderOverview() 호출');
-          // 관리자용 대시보드 표시
-          return renderOverview();
+          console.log('👑 관리자용 대시보드 렌더링 - ModernPersonalServiceDashboard 사용');
+          // 새로운 모던 대시보드 표시
+          return (
+            <ModernPersonalServiceDashboard
+              user={user}
+              projects={projects || []}
+              onCreateProject={() => handleTabChange('creation')}
+              onSelectProject={(projectId) => {
+                setSelectedProjectId(projectId);
+                handleTabChange('model-builder');
+              }}
+              onTabChange={(tab) => {
+                if (externalOnTabChange) {
+                  externalOnTabChange(tab);
+                }
+                handleTabChange(tab);
+              }}
+            />
+          );
         }
       case 'projects':
         return (
