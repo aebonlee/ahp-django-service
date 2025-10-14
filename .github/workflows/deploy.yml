@@ -17,18 +17,15 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: 'ahp_app/package-lock.json'
         
     - name: Install dependencies
-      working-directory: ./ahp_app
       run: npm ci
         
     - name: Build
-      working-directory: ./ahp_app
       run: npm run build
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./ahp_app/build
+        publish_dir: ./build
