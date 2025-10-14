@@ -395,71 +395,60 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* 헤더 */}
-        <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={onBack || (() => window.history.back())}
-                className="mr-4 transition-colors text-2xl"
-                style={{ 
-                  color: 'var(--text-muted)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--text-muted)';
-                }}
-                title="뒤로가기"
-              >
-                ←
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold flex items-center space-x-3" style={{ color: 'var(--text-primary)' }}>
-                  <UIIcon emoji="⚙️" size="xl" color="primary" />
-                  <span>개인 설정</span>
-                </h1>
-                <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
-                  계정 정보와 개인 환경설정을 관리합니다
-                </p>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
+      {/* 헤더 */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <button 
+                  onClick={onBack || (() => window.history.back())}
+                  className="mr-4 text-gray-500 hover:text-gray-700 transition-colors text-2xl"
+                >
+                  ←
+                </button>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                    <span className="text-4xl mr-3">⚙️</span>개인 설정
+                  </h1>
+                  <p className="text-gray-600 mt-2">
+                    계정 정보와 개인 환경설정을 관리합니다
+                  </p>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <SuccessButton
-                onClick={saveSettingsToAPI}
-                disabled={saveStatus === 'saving'}
-                className="flex items-center space-x-2"
-              >
-                <UIIcon emoji="💾" size="lg" color="white" />
-                <span>{getSaveStatusText()}</span>
-              </SuccessButton>
+              
+              <div className="flex items-center space-x-3">
+                <SuccessButton
+                  onClick={saveSettingsToAPI}
+                  disabled={saveStatus === 'saving'}
+                  className="flex items-center space-x-2"
+                >
+                  <UIIcon emoji="💾" size="lg" color="white" />
+                  <span>{getSaveStatusText()}</span>
+                </SuccessButton>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* 사이드바 탭 */}
           <div className="lg:col-span-1">
-            <div className="p-4 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-              <nav className="space-y-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <nav className="p-4 space-y-2">
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ${
                       activeTab === tab.id
-                        ? 'shadow-md transform scale-105'
-                        : 'hover:shadow-sm hover:transform hover:scale-102'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
-                    style={{
-                      backgroundColor: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                      color: activeTab === tab.id ? 'white' : 'var(--text-primary)',
-                      border: activeTab === tab.id ? 'none' : '1px solid var(--border-light)'
-                    }}
                   >
                     <UIIcon emoji={tab.icon} size="lg" color={activeTab === tab.id ? 'white' : 'primary'} />
                     <span className="font-medium">{tab.label}</span>
@@ -472,10 +461,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           {/* 메인 콘텐츠 */}
           <div className="lg:col-span-3">
             {activeTab === 'profile' && (
-              <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center space-x-3 mb-6">
                   <UIIcon emoji="👤" size="xl" color="primary" />
-                  <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>프로필 정보</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">프로필 정보</h2>
                 </div>
                 
                 <div className="space-y-6">
@@ -570,10 +559,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
             )}
 
             {activeTab === 'security' && (
-              <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center space-x-3 mb-6">
                   <UIIcon emoji="🔒" size="xl" color="primary" />
-                  <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>보안 설정</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">보안 설정</h2>
                 </div>
                 
                 <div className="space-y-6">
@@ -660,10 +649,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           )}
 
           {activeTab === 'workflow' && (
-            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <UIIcon emoji="⚙️" size="xl" color="primary" />
-                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>워크플로우 설정</h2>
+                <h2 className="text-2xl font-bold text-gray-900">워크플로우 설정</h2>
               </div>
               <div className="space-y-6">
                 <div>
@@ -707,10 +696,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           )}
 
           {activeTab === 'notifications' && (
-            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <UIIcon emoji="🔔" size="xl" color="primary" />
-                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>알림 설정</h2>
+                <h2 className="text-2xl font-bold text-gray-900">알림 설정</h2>
               </div>
               <div className="space-y-4">
                 <label className="flex items-center">
@@ -754,10 +743,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           )}
 
           {activeTab === 'display' && (
-            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <UIIcon emoji="🎨" size="xl" color="primary" />
-                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>표시 설정</h2>
+                <h2 className="text-2xl font-bold text-gray-900">표시 설정</h2>
               </div>
               <div className="space-y-6">
                 <div>
@@ -803,10 +792,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           )}
 
           {activeTab === 'privacy' && (
-            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <UIIcon emoji="🔒" size="xl" color="primary" />
-                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>개인정보 설정</h2>
+                <h2 className="text-2xl font-bold text-gray-900">개인정보 설정</h2>
               </div>
               <div className="space-y-6">
                 <div>
@@ -856,10 +845,10 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
           )}
 
             {activeTab === 'data' && (
-              <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center space-x-3 mb-6">
                   <UIIcon emoji="💾" size="xl" color="primary" />
-                  <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>데이터 관리</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">데이터 관리</h2>
                 </div>
                 
                 <div className="space-y-6">
