@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../common/Card';
-import Button from '../common/Button';
+import UIIcon from '../common/UIIcon';
+import { PrimaryButton, SecondaryButton } from '../common/UIButton';
 import dataService from '../../services/dataService_clean';
 import { ProjectData, CriteriaData, AlternativeData } from '../../services/api';
 
@@ -100,17 +100,26 @@ const EvaluationTest: React.FC = () => {
   const ProjectSelection = () => {
     if (loading) {
       return (
-        <Card title="📋 프로젝트 선택">
+        <div className="ui-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <UIIcon emoji="📋" size="lg" color="primary" />
+            <h3 className="text-lg font-semibold text-gray-900">프로젝트 선택</h3>
+          </div>
           <div className="text-center py-8">
-            <div className="text-4xl mb-4">•••</div>
+            <UIIcon emoji="⏳" size="4xl" color="muted" className="mb-4" />
             <p className="text-gray-600">실제 프로젝트 데이터 로드 중...</p>
           </div>
-        </Card>
+        </div>
       );
     }
 
     return (
-      <Card title="📋 프로젝트 선택">
+      <div className="ui-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <UIIcon emoji="📋" size="lg" color="primary" />
+          <h3 className="text-lg font-semibold text-gray-900">프로젝트 선택</h3>
+        </div>
+        
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             평가 테스트를 진행할 실제 프로젝트를 선택하세요.
@@ -118,7 +127,7 @@ const EvaluationTest: React.FC = () => {
           
           {realProjects.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <div className="text-4xl mb-4">📋</div>
+              <UIIcon emoji="📋" size="4xl" color="muted" className="mb-4" />
               <h3 className="text-lg font-medium text-gray-700 mb-2">평가 가능한 프로젝트가 없습니다</h3>
               <p className="text-gray-500">먼저 '내 프로젝트'에서 프로젝트를 생성하고 기준과 대안을 설정해주세요.</p>
             </div>
@@ -127,58 +136,80 @@ const EvaluationTest: React.FC = () => {
               {realProjects.map(project => (
                 <div 
                   key={project.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-colors"
                   onClick={() => handleProjectSelect(project)}
                 >
-                  <h4 className="font-semibold text-lg mb-2">{project.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-                  
-                  <div className="flex items-center gap-6 text-xs text-gray-500">
-                    <span>상태: {project.status === 'active' ? '진행중' : project.status === 'completed' ? '완료' : project.status}</span>
-                    <span>기준: {project.criteria_count || 0}개</span>
-                    <span>대안: {project.alternatives_count || 0}개</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg mb-2">{project.title}</h4>
+                      <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                      
+                      <div className="flex items-center gap-6 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <UIIcon emoji="📊" size="xs" />
+                          상태: {project.status === 'active' ? '진행중' : project.status === 'completed' ? '완료' : project.status}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <UIIcon emoji="🎯" size="xs" />
+                          기준: {project.criteria_count || 0}개
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <UIIcon emoji="📋" size="xs" />
+                          대안: {project.alternatives_count || 0}개
+                        </span>
+                      </div>
+                    </div>
+                    <UIIcon emoji="▶️" size="lg" color="secondary" className="ml-4" />
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </Card>
+      </div>
     );
   };
 
   // 인구통계학적 설문 화면
   const DemographicSurvey = () => (
-    <Card title="📊 인구통계학적 설문조사">
+    <div className="ui-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <UIIcon emoji="📊" size="lg" color="primary" />
+        <h3 className="text-lg font-semibold text-gray-900">인구통계학적 설문조사</h3>
+      </div>
+      
       <div className="space-y-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-blue-800">
-            평가자에게 표시되는 설문 화면입니다. 실제 평가 시 수집되는 정보를 미리 확인하세요.
-          </p>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-3">
+            <UIIcon emoji="💡" size="lg" color="info" />
+            <p className="text-sm text-blue-800">
+              평가자에게 표시되는 설문 화면입니다. 실제 평가 시 수집되는 정보를 미리 확인하세요.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">이름</label>
+            <label className="block text-sm font-medium mb-2 text-gray-700">이름</label>
             <input 
               type="text" 
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
               placeholder="홍길동"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">소속</label>
+            <label className="block text-sm font-medium mb-2 text-gray-700">소속</label>
             <input 
               type="text" 
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
               placeholder="○○기업 연구개발부"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">직위</label>
-            <select className="w-full p-2 border border-gray-300 rounded-md">
+            <label className="block text-sm font-medium mb-2 text-gray-700">직위</label>
+            <select className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
               <option>선택하세요</option>
               <option>사원</option>
               <option>대리</option>
@@ -190,8 +221,8 @@ const EvaluationTest: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">경력</label>
-            <select className="w-full p-2 border border-gray-300 rounded-md">
+            <label className="block text-sm font-medium mb-2 text-gray-700">경력</label>
+            <select className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
               <option>선택하세요</option>
               <option>1년 미만</option>
               <option>1-3년</option>
@@ -202,88 +233,122 @@ const EvaluationTest: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">전문 분야</label>
+            <label className="block text-sm font-medium mb-2 text-gray-700">전문 분야</label>
             <input 
               type="text" 
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
               placeholder="AI/ML, 데이터 분석"
             />
           </div>
         </div>
 
         <div className="flex justify-between pt-4">
-          <Button 
-            variant="secondary"
+          <SecondaryButton
+            iconEmoji="⬅️"
             onClick={() => setCurrentStep('select')}
           >
             이전
-          </Button>
-          <Button onClick={() => setCurrentStep('evaluation')}>
+          </SecondaryButton>
+          <PrimaryButton 
+            iconEmoji="➡️"
+            onClick={() => setCurrentStep('evaluation')}
+          >
             다음 단계
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
-    </Card>
+    </div>
   );
 
   // 평가 화면
   const EvaluationScreen = () => (
-    <Card title="⚖️ 평가 진행">
+    <div className="ui-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <UIIcon emoji="⚖️" size="lg" color="primary" />
+        <h3 className="text-lg font-semibold text-gray-900">평가 진행</h3>
+      </div>
+      
       <div className="space-y-6">
-        <div className="bg-green-50 p-4 rounded-lg">
-          <p className="text-sm text-green-800">
-            실제 평가자가 보게 될 평가 인터페이스입니다.
-          </p>
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <div className="flex items-start gap-3">
+            <UIIcon emoji="👁️" size="lg" color="success" />
+            <p className="text-sm text-green-800">
+              실제 평가자가 보게 될 평가 인터페이스입니다.
+            </p>
+          </div>
         </div>
 
         {selectedProject?.evaluationMethod === 'pairwise' ? (
           // 쌍대비교 평가
-          <div className="space-y-4">
-            <h4 className="font-semibold">기준 간 중요도 비교</h4>
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <UIIcon emoji="🎯" size="lg" color="primary" />
+              <h4 className="font-semibold text-gray-900">기준 간 중요도 비교</h4>
+            </div>
             
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-medium">{selectedProject?.criteria[0]?.name || '기준 1'}</span>
-                <span className="text-gray-500">vs</span>
-                <span className="font-medium">{selectedProject?.criteria[1]?.name || '기준 2'}</span>
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-center gap-6 mb-6">
+                <div className="text-center">
+                  <div className="font-semibold text-gray-900 mb-2">
+                    {selectedProject?.criteria[0]?.name || '기준 1'}
+                  </div>
+                  <UIIcon emoji="🔵" size="lg" color="primary" />
+                </div>
+                <UIIcon emoji="⚖️" size="xl" color="warning" />
+                <div className="text-center">
+                  <div className="font-semibold text-gray-900 mb-2">
+                    {selectedProject?.criteria[1]?.name || '기준 2'}
+                  </div>
+                  <UIIcon emoji="🔴" size="lg" color="danger" />
+                </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <span className="text-sm">매우 중요</span>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-sm text-gray-600">매우 중요</span>
                 <div className="flex gap-1">
                   {[9, 7, 5, 3, 1, 3, 5, 7, 9].map((value, idx) => (
                     <button
                       key={idx}
-                      className={`w-8 h-8 border rounded ${idx === 4 ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                      className={`w-10 h-10 border rounded-lg font-medium transition-colors hover:bg-blue-100 ${
+                        idx === 4 ? 'bg-blue-500 text-white border-blue-500' : 'bg-white border-gray-300'
+                      }`}
                     >
                       {value}
                     </button>
                   ))}
                 </div>
-                <span className="text-sm">매우 중요</span>
+                <span className="text-sm text-gray-600">매우 중요</span>
               </div>
             </div>
 
-            <div className="text-center text-sm text-gray-600">
-              1/6 비교 완료
+            <div className="text-center">
+              <UIIcon emoji="📊" size="lg" color="info" className="mr-2" />
+              <span className="text-sm text-gray-600">1/6 비교 완료</span>
             </div>
           </div>
         ) : (
           // 직접입력 평가
-          <div className="space-y-4">
-            <h4 className="font-semibold">대안별 점수 입력</h4>
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <UIIcon emoji="📝" size="lg" color="primary" />
+              <h4 className="font-semibold text-gray-900">대안별 점수 입력</h4>
+            </div>
             
-            <div className="space-y-3">
-              {selectedProject?.alternatives.map(alt => (
-                <div key={alt.id} className="flex items-center gap-4">
-                  <span className="w-24 font-medium">{alt.name}</span>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-right">50</span>
+            <div className="space-y-4">
+              {selectedProject?.alternatives.map((alt, idx) => (
+                <div key={alt.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-4">
+                    <UIIcon emoji="🎯" size="lg" color="primary" />
+                    <span className="w-32 font-medium text-gray-900">{alt.name}</span>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      defaultValue="50"
+                    />
+                    <span className="w-12 text-right font-medium text-blue-600">50</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -291,28 +356,32 @@ const EvaluationTest: React.FC = () => {
         )}
 
         {testMode === 'simulate' && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span>진행률</span>
-              <span>{evaluationProgress}%</span>
+              <span className="flex items-center gap-2">
+                <UIIcon emoji="⏱️" size="sm" />
+                진행률
+              </span>
+              <span className="font-semibold text-blue-600">{evaluationProgress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${evaluationProgress}%` }}
               />
             </div>
           </div>
         )}
 
-        <div className="flex justify-between pt-4">
-          <Button 
-            variant="secondary"
+        <div className="flex justify-between pt-6">
+          <SecondaryButton
+            iconEmoji="⬅️"
             onClick={() => setCurrentStep('demographic')}
           >
             이전
-          </Button>
-          <Button 
+          </SecondaryButton>
+          <PrimaryButton 
+            iconEmoji={testMode === 'simulate' ? '🚀' : '👁️'}
             onClick={() => {
               if (testMode === 'simulate') {
                 simulateEvaluation();
@@ -322,97 +391,130 @@ const EvaluationTest: React.FC = () => {
             }}
           >
             {testMode === 'simulate' ? '평가 시뮬레이션' : '결과 미리보기'}
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
-    </Card>
+    </div>
   );
 
   // 결과 화면
   const ResultScreen = () => (
-    <Card title="📈 평가 결과 미리보기">
+    <div className="ui-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <UIIcon emoji="📈" size="lg" color="primary" />
+        <h3 className="text-lg font-semibold text-gray-900">평가 결과 미리보기</h3>
+      </div>
+      
       <div className="space-y-6">
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <p className="text-sm text-purple-800">
-            평가 완료 후 평가자에게 표시되는 결과 화면입니다.
-          </p>
+        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <div className="flex items-start gap-3">
+            <UIIcon emoji="🎉" size="lg" color="secondary" />
+            <p className="text-sm text-purple-800">
+              평가 완료 후 평가자에게 표시되는 결과 화면입니다.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-4">
-          <h4 className="font-semibold">최종 우선순위</h4>
+          <div className="flex items-center gap-3">
+            <UIIcon emoji="🏆" size="lg" color="warning" />
+            <h4 className="font-semibold text-gray-900">최종 우선순위</h4>
+          </div>
           
           {selectedProject?.alternatives.map((alt, idx) => (
-            <div key={alt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold text-gray-400">#{idx + 1}</span>
+            <div key={alt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                  {idx + 1}
+                </div>
                 <div>
-                  <div className="font-medium">{alt.name}</div>
+                  <div className="font-medium text-gray-900">{alt.name}</div>
                   {alt.description && (
-                    <div className="text-xs text-gray-500">{alt.description}</div>
+                    <div className="text-sm text-gray-500 mt-1">{alt.description}</div>
                   )}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold">{(0.35 - idx * 0.1).toFixed(3)}</div>
-                <div className="text-xs text-gray-500">{((0.35 - idx * 0.1) * 100).toFixed(1)}%</div>
+                <div className="text-xl font-bold text-blue-600">{(0.35 - idx * 0.1).toFixed(3)}</div>
+                <div className="text-sm text-gray-500">{((0.35 - idx * 0.1) * 100).toFixed(1)}%</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between text-sm">
-            <span>일관성 비율 (CR)</span>
-            <span className="font-medium text-green-600">0.087 (양호)</span>
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <span className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <UIIcon emoji="✅" size="sm" />
+              일관성 비율 (CR)
+            </span>
+            <span className="font-bold text-green-600">0.087 (양호)</span>
           </div>
         </div>
 
-        <div className="flex justify-center pt-4">
-          <Button onClick={() => {
-            setCurrentStep('select');
-            setSelectedProject(null);
-            setEvaluationProgress(0);
-          }}>
+        <div className="flex justify-center pt-6">
+          <PrimaryButton 
+            iconEmoji="🔄"
+            onClick={() => {
+              setCurrentStep('select');
+              setSelectedProject(null);
+              setEvaluationProgress(0);
+            }}
+          >
             처음으로
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
-    </Card>
+    </div>
   );
 
   return (
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          🧪 평가 테스트
-        </h1>
-        <p className="text-gray-600">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <UIIcon emoji="🧪" size="3xl" color="primary" />
+          <h1 className="text-3xl font-bold text-gray-900">평가 테스트</h1>
+        </div>
+        <p className="text-gray-600 text-lg">
           평가자 화면을 미리 확인하고 테스트해보세요
         </p>
       </div>
 
       {/* 테스트 모드 선택 */}
-      <Card>
-        <div className="flex items-center justify-center gap-4">
-          <label className="flex items-center gap-2">
+      <div className="ui-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <UIIcon emoji="⚙️" size="lg" color="secondary" />
+          <h3 className="text-lg font-semibold text-gray-900">테스트 모드 선택</h3>
+        </div>
+        
+        <div className="flex items-center justify-center gap-8">
+          <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
             <input 
               type="radio" 
               checked={testMode === 'preview'}
               onChange={() => setTestMode('preview')}
+              className="w-4 h-4 text-blue-600"
             />
-            <span>미리보기 모드</span>
+            <div className="flex items-center gap-2">
+              <UIIcon emoji="👁️" size="lg" color="info" />
+              <span className="font-medium text-gray-900">미리보기 모드</span>
+            </div>
           </label>
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
             <input 
               type="radio"
               checked={testMode === 'simulate'}
               onChange={() => setTestMode('simulate')}
+              className="w-4 h-4 text-blue-600"
             />
-            <span>시뮬레이션 모드</span>
+            <div className="flex items-center gap-2">
+              <UIIcon emoji="🚀" size="lg" color="success" />
+              <span className="font-medium text-gray-900">시뮬레이션 모드</span>
+            </div>
           </label>
         </div>
-      </Card>
+      </div>
 
       {/* 진행 단계 표시 */}
       <div className="flex items-center justify-center gap-2">
@@ -445,21 +547,40 @@ const EvaluationTest: React.FC = () => {
       {currentStep === 'result' && <ResultScreen />}
 
       {/* 도움말 */}
-      <Card title="💡 평가 테스트 가이드">
-        <div className="space-y-3 text-sm text-gray-600">
-          <p>
-            <strong>미리보기 모드:</strong> 평가자가 보게 될 화면의 구성과 흐름을 확인합니다.
-          </p>
-          <p>
-            <strong>시뮬레이션 모드:</strong> 실제 평가 과정을 시뮬레이션하여 동작을 테스트합니다.
-          </p>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-yellow-800">
-              💡 Tip: 실제 평가 링크는 '평가자 관리' 메뉴에서 생성할 수 있습니다.
-            </p>
+      <div className="ui-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <UIIcon emoji="💡" size="lg" color="warning" />
+          <h3 className="text-lg font-semibold text-gray-900">평가 테스트 가이드</h3>
+        </div>
+        
+        <div className="space-y-4 text-sm text-gray-600">
+          <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+            <UIIcon emoji="👁️" size="lg" color="info" />
+            <div>
+              <div className="font-semibold text-blue-900 mb-1">미리보기 모드</div>
+              <p className="text-blue-800">평가자가 보게 될 화면의 구성과 흐름을 확인합니다.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+            <UIIcon emoji="🚀" size="lg" color="success" />
+            <div>
+              <div className="font-semibold text-green-900 mb-1">시뮬레이션 모드</div>
+              <p className="text-green-800">실제 평가 과정을 시뮬레이션하여 동작을 테스트합니다.</p>
+            </div>
+          </div>
+          
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <div className="flex items-start gap-3">
+              <UIIcon emoji="🎯" size="lg" color="warning" />
+              <div>
+                <div className="font-semibold text-yellow-900 mb-1">팁</div>
+                <p className="text-yellow-800">실제 평가 링크는 '평가자 관리' 메뉴에서 생성할 수 있습니다.</p>
+              </div>
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
