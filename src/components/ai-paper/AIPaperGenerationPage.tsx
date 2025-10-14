@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UIIcon from '../common/UIIcon';
-import { PrimaryButton, SecondaryButton } from '../common/UIButton';
+import { PrimaryButton, SecondaryButton, SuccessButton, DangerButton } from '../common/UIButton';
 import cleanDataService from '../../services/dataService_clean';
 import type { User } from '../../types';
 
@@ -450,14 +450,13 @@ const AIPaperGenerationPage: React.FC<AIPaperGenerationPageProps> = ({ user }) =
 
       {!generating && paperSections.every(s => s.status === 'completed') && (
         <div className="text-center pt-6">
-          <PrimaryButton
+          <SuccessButton
             onClick={() => setActiveTab('review-edit')}
-            variant="success"
             size="lg"
           >
             <UIIcon emoji="📝" size="sm" className="mr-2" />
             검토 및 편집하기
-          </PrimaryButton>
+          </SuccessButton>
         </div>
       )}
     </div>
@@ -549,14 +548,13 @@ const AIPaperGenerationPage: React.FC<AIPaperGenerationPageProps> = ({ user }) =
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
             인쇄 및 배포용 PDF 형식
           </p>
-          <PrimaryButton
+          <DangerButton
             onClick={() => exportPaper('pdf')}
             className="w-full"
             size="md"
-            variant="danger"
           >
             PDF 다운로드
-          </PrimaryButton>
+          </DangerButton>
         </div>
 
         <div className="ui-card p-6 text-center">
@@ -565,14 +563,13 @@ const AIPaperGenerationPage: React.FC<AIPaperGenerationPageProps> = ({ user }) =
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
             학술지 투고용 LaTeX 형식
           </p>
-          <PrimaryButton
+          <SuccessButton
             onClick={() => exportPaper('latex')}
             className="w-full"
             size="md"
-            variant="success"
           >
             LaTeX 다운로드
-          </PrimaryButton>
+          </SuccessButton>
         </div>
       </div>
 

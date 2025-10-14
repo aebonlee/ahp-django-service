@@ -470,17 +470,17 @@ const EvaluationTest: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-      {/* 헤더 - EnhancedEvaluatorManagement 스타일 */}
+      {/* 헤더 - "내 프로젝트" 스타일 */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    평가 테스트
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                    <span className="text-4xl mr-3">🧪</span>평가 테스트
+                  </h1>
+                  <p className="text-gray-600 mt-2">
                     평가자 화면을 미리 확인하고 테스트해보세요
                   </p>
                 </div>
@@ -495,11 +495,17 @@ const EvaluationTest: React.FC = () => {
                   <button
                     key={mode.key}
                     onClick={() => setTestMode(mode.key as 'preview' | 'simulate')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`p-5 lg:p-6 text-xl lg:text-2xl transition-colors font-semibold inline-flex items-center justify-center cursor-pointer rounded-lg ${
                       testMode === mode.key
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-blue-600 text-white border border-blue-600 shadow-lg'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
                     }`}
+                    style={{
+                      transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      padding: '12px 24px',
+                      fontSize: '0.875rem',
+                      minHeight: '44px'
+                    }}
                   >
                     {mode.icon} {mode.label}
                   </button>
