@@ -13,7 +13,11 @@ interface TestProject {
   evaluationMethod: 'pairwise' | 'direct';
 }
 
-const EvaluationTest: React.FC = () => {
+interface EvaluationTestProps {
+  onBack?: () => void;
+}
+
+const EvaluationTest: React.FC<EvaluationTestProps> = ({ onBack }) => {
   const [selectedProject, setSelectedProject] = useState<TestProject | null>(null);
   const [currentStep, setCurrentStep] = useState<'select' | 'demographic' | 'evaluation' | 'result'>('select');
   const [evaluationProgress, setEvaluationProgress] = useState(0);
@@ -476,6 +480,14 @@ const EvaluationTest: React.FC = () => {
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
+                {onBack && (
+                  <button 
+                    onClick={onBack}
+                    className="mr-4 text-gray-500 hover:text-gray-700 transition-colors text-2xl"
+                  >
+                    ←
+                  </button>
+                )}
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                     <span className="text-4xl mr-3">🧪</span>평가 테스트

@@ -1605,7 +1605,7 @@ function App() {
         return <EvaluatorGuidePage />;
 
       case 'evaluation-test':
-        return <EvaluationTest />;
+        return <EvaluationTest onBack={() => setActiveTab('personal-service')} />;
 
       case 'connection-test':
         return <ConnectionTestPage />;
