@@ -142,7 +142,8 @@ def api_root(request):
                 'accounts': request.build_absolute_uri('/api/accounts/'),
                 'projects': request.build_absolute_uri('/api/projects/'),
                 'evaluations': request.build_absolute_uri('/api/evaluations/'),
-                'analysis': request.build_absolute_uri('/api/analysis/')
+                'analysis': request.build_absolute_uri('/api/analysis/'),
+                'subscriptions': request.build_absolute_uri('/api/subscriptions/')
             }
         },
         'service_endpoints': {
@@ -155,7 +156,8 @@ def api_root(request):
                 'accounts': request.build_absolute_uri('/api/service/accounts/'),
                 'projects': request.build_absolute_uri('/api/service/projects/'),
                 'evaluations': request.build_absolute_uri('/api/service/evaluations/'),
-                'analysis': request.build_absolute_uri('/api/service/analysis/')
+                'analysis': request.build_absolute_uri('/api/service/analysis/'),
+                'subscriptions': request.build_absolute_uri('/api/service/subscriptions/')
             }
         },
         'documentation': {
@@ -220,6 +222,7 @@ api_patterns = [
     path('projects/', include('apps.projects.urls')),
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
+    path('subscriptions/', include('apps.subscriptions.urls')),
 ]
 
 # Add custom auth endpoints if available
