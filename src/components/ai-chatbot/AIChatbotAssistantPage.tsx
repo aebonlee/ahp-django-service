@@ -456,6 +456,7 @@ AHP 연구에서는 이론적 이해와 실무 적용이 모두 중요합니다.
         title="AI 챗봇 도우미"
         description="AHP 연구와 분석에 대한 실시간 질의응답과 전문적 상담을 제공합니다"
         icon="💬"
+        onBack={() => window.history.back()}
         actions={
           <button
             onClick={() => setShowAIConfig(true)}

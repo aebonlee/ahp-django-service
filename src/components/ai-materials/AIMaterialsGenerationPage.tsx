@@ -829,6 +829,7 @@ ${selectedProject?.title} AHP 분석 연구
         title="AI 학술 자료 생성"
         description="AHP 프로젝트 결과를 기반으로 다양한 학술 자료를 AI가 자동 생성합니다"
         icon="📚"
+        onBack={() => window.history.back()}
       />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

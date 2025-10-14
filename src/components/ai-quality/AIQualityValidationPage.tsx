@@ -860,6 +860,7 @@ const AIQualityValidationPage: React.FC<AIQualityValidationPageProps> = ({ user 
         title="AI 논문 품질 검증"
         description="작성된 논문의 학술적 품질을 AI가 다각도로 검증하고 개선 제안을 제공합니다"
         icon="✨"
+        onBack={() => window.history.back()}
       />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

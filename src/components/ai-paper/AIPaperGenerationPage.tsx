@@ -624,6 +624,7 @@ const AIPaperGenerationPage: React.FC<AIPaperGenerationPageProps> = ({ user }) =
         title="AI 논문 생성"
         description="AHP 프로젝트 데이터를 기반으로 학술 논문을 자동 생성합니다"
         icon="🤖"
+        onBack={() => window.history.back()}
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
