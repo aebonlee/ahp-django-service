@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import UIIcon, { SearchIcon } from '../common/UIIcon';
+import UIIcon from '../common/UIIcon';
 import ModernPersonalServiceDashboard from './ModernPersonalServiceDashboard';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import exportService from '../../services/exportService';

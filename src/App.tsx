@@ -4,7 +4,7 @@ import './App.css';
 import sessionService from './services/sessionService';
 import authService from './services/authService';
 import cleanDataService from './services/dataService_clean';
-import { initializeAIWithProvidedKey, setAPIKeyDirectly } from './utils/aiInitializer';
+import { setAPIKeyDirectly } from './utils/aiInitializer';
 import type { User, UserRole } from './types';
 import Layout from './components/layout/Layout';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
