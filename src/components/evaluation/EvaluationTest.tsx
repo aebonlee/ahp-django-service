@@ -511,7 +511,85 @@ const EvaluationTest: React.FC = () => {
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* 페이지 소개 섹션 - ComprehensiveUserGuide 스타일 */}
+        <div className="text-center space-y-6">
+          <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+            🧪 평가 테스트 시스템
+          </h1>
+          <p className="text-xl max-w-4xl mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            평가자가 실제로 경험할 화면과 프로세스를 미리 확인하고 테스트할 수 있는 통합 시뮬레이션 환경입니다. 
+            실제 프로젝트 데이터를 활용하여 평가 과정을 검증하고 최적화하세요.
+          </p>
+        </div>
+
+        {/* 기능 소개 카드들 */}
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* 미리보기 모드 */}
+            <div className="ui-card p-6">
+              <div className="text-center">
+                <div className="text-6xl mb-6">👁️</div>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  미리보기 모드
+                </h3>
+                <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
+                  평가자 화면의 구성과 흐름을 사전에 검토하고 확인
+                </p>
+                <div className="space-y-3 text-left mb-8">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">📱</span>
+                    <span>사용자 인터페이스 검토</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">🔄</span>
+                    <span>평가 프로세스 플로우 확인</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">📝</span>
+                    <span>설문조사 양식 검증</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">📊</span>
+                    <span>결과 화면 미리보기</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 시뮬레이션 모드 */}
+            <div className="ui-card p-6">
+              <div className="text-center">
+                <div className="text-6xl mb-6">🚀</div>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  시뮬레이션 모드
+                </h3>
+                <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
+                  실제 평가 과정을 완전히 시뮬레이션하여 동작 검증
+                </p>
+                <div className="space-y-3 text-left mb-8">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">🔗</span>
+                    <span>실제 데이터 연동 테스트</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">⏱️</span>
+                    <span>평가 소요시간 측정</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">🎯</span>
+                    <span>일관성 검증 시뮬레이션</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">📈</span>
+                    <span>결과 생성 프로세스 확인</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       {/* 프로세스 단계 - Decision Support System 스타일 */}
       <div className="bg-white border rounded-lg p-4">
