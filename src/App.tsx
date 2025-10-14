@@ -406,7 +406,7 @@ function App() {
           const FIXED_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
           
           // API 키를 로컬 스토리지에 저장하고 AI 서비스 초기화
-          const aiService = setAPIKeyDirectly(FIXED_API_KEY, 'openai');
+          const aiService = FIXED_API_KEY ? setAPIKeyDirectly(FIXED_API_KEY, 'openai') : null;
           
           if (aiService) {
             console.log('✅ AI 서비스 초기화 성공 (고정 API 키)');
@@ -422,7 +422,7 @@ function App() {
               console.error('❌ API 키 검증 중 오류:', validationError);
             }
           } else {
-            console.error('❌ AI 서비스 초기화 실패');
+            console.warn('⚠️ 환경변수에 REACT_APP_OPENAI_API_KEY가 설정되지 않음');
           }
         } catch (error) {
           console.error('❌ AI 서비스 초기화 중 예외 발생:', error);

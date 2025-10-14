@@ -429,8 +429,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, onLogoClick, activeTab,
                 className="flex items-center space-x-3 p-2 rounded-lg transition-all duration-200 hover:shadow-md hover:scale-105 group focus:outline-none focus:ring-2 focus:ring-offset-2"
                 style={{ 
                   backgroundColor: activeTab === 'personal-settings' ? 'var(--accent-pastel)' : 'transparent',
-                  border: activeTab === 'personal-settings' ? '1px solid var(--accent-primary)' : '1px solid transparent',
-                  focusRingColor: 'var(--accent-primary)'
+                  border: activeTab === 'personal-settings' ? '1px solid var(--accent-primary)' : '1px solid transparent'
                 }}
                 title="개인 설정으로 이동 (클릭하세요)"
               >

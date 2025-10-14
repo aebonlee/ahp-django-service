@@ -490,8 +490,7 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                         style={{
                           backgroundColor: 'var(--bg-primary)',
                           borderColor: 'var(--border-light)',
-                          color: 'var(--text-primary)',
-                          focusRingColor: 'var(--accent-primary)'
+                          color: 'var(--text-primary)'
                         }}
                       />
                     </div>
@@ -657,11 +656,15 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
           {activeTab === 'workflow' && (
-            <Card title="워크플로우 설정">
+            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="flex items-center space-x-3 mb-6">
+                <UIIcon emoji="⚙️" size="xl" color="primary" />
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>워크플로우 설정</h2>
+              </div>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">자동 저장 간격 (초)</label>
@@ -700,11 +703,15 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                   <span className="ml-2">튜토리얼 표시</span>
                 </label>
               </div>
-            </Card>
+            </div>
           )}
 
           {activeTab === 'notifications' && (
-            <Card title="알림 설정">
+            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="flex items-center space-x-3 mb-6">
+                <UIIcon emoji="🔔" size="xl" color="primary" />
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>알림 설정</h2>
+              </div>
               <div className="space-y-4">
                 <label className="flex items-center">
                   <input
@@ -743,11 +750,15 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                   <span className="ml-2">마감일 알림</span>
                 </label>
               </div>
-            </Card>
+            </div>
           )}
 
           {activeTab === 'display' && (
-            <Card title="표시 설정">
+            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="flex items-center space-x-3 mb-6">
+                <UIIcon emoji="🎨" size="xl" color="primary" />
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>표시 설정</h2>
+              </div>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">언어</label>
@@ -788,11 +799,15 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                   </select>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
           {activeTab === 'privacy' && (
-            <Card title="개인정보 설정">
+            <div className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+              <div className="flex items-center space-x-3 mb-6">
+                <UIIcon emoji="🔒" size="xl" color="primary" />
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>개인정보 설정</h2>
+              </div>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">프로필 공개 범위</label>
@@ -837,7 +852,7 @@ const PersonalSettings: React.FC<PersonalSettingsProps> = ({ user, onBack, onUse
                   </label>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
             {activeTab === 'data' && (
