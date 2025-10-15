@@ -59,7 +59,7 @@ LOCAL_APPS = [
     'apps.projects',
     'apps.analysis', 
     'apps.evaluations',
-    'apps.ai_management',
+    'apps.ai_management',  # AI 관리 시스템 - 완전 구현
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
