@@ -5,7 +5,7 @@ services:
     runtime: python-3.11.0
     plan: free
     buildCommand: "./django_backend/render-build.sh"
-    startCommand: "cd django_backend && gunicorn ahp_backend.wsgi:application"
+    startCommand: "cd django_backend && python -m gunicorn ahp_backend.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
