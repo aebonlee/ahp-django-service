@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -o errexit
+# Force rebuild - 2025-10-16
 
 # Change to the Django app directory
 cd "$(dirname "$0")"
