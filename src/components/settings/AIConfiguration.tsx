@@ -1,11 +1,15 @@
 /**
  * AI 설정 컴포넌트
  * OpenAI API 키 설정 및 AI 서비스 구성 관리
+ * 향상된 사용자 경험을 위한 풍선도움말과 단계별 가이드 제공
  */
 
 import React, { useState, useEffect } from 'react';
 import { initializeAIService } from '../../services/aiService';
 import { saveAndInitializeAI, clearAISettings, getCurrentAISettings } from '../../utils/aiInitializer';
+import Tooltip from '../common/Tooltip';
+import APIKeyGuideModal from './APIKeyGuideModal';
+import UIIcon from '../common/UIIcon';
 
 interface AIConfigurationProps {
   onClose?: () => void;
@@ -25,6 +29,8 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
     openai: false,
     claude: false
   });
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showUsageInfo, setShowUsageInfo] = useState(false);
 
   // 컴포넌트 마운트 시 현재 설정 로드
   useEffect(() => {
@@ -108,6 +114,16 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
     }
   };
 
+  // 가이드에서 API 키 받기
+  const handleApiKeyFromGuide = (apiKey: string) => {
+    setApiKeys(prev => ({ ...prev, openai: apiKey }));
+    setSelectedProvider('openai');
+    // 자동으로 검증 시작
+    setTimeout(() => {
+      validateAPIKey('openai', apiKey);
+    }, 500);
+  };
+
   const getValidationIcon = (status: string) => {
     switch (status) {
       case 'validating': return '⏳';
@@ -129,17 +145,97 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          🤖 AI 서비스 설정
-        </h2>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          AI 기능을 사용하기 위한 API 키를 설정하세요.
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              🤖 AI 서비스 설정
+            </h2>
+            <p style={{ color: 'var(--text-secondary)' }}>
+              AI 기능을 사용하기 위한 API 키를 설정하세요.
+            </p>
+          </div>
+          
+          <div className="flex space-x-2">
+            <Tooltip content="단계별 가이드를 통해 쉽게 API 키를 설정할 수 있습니다">
+              <button
+                onClick={() => setShowGuideModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-white"
+                style={{ backgroundColor: 'var(--accent-primary)' }}
+              >
+                <UIIcon emoji="📖" size="sm" />
+                <span>설정 가이드</span>
+              </button>
+            </Tooltip>
+            
+            <Tooltip content="API 요금, 사용량 한도, 보안 등에 대한 자세한 정보">
+              <button
+                onClick={() => setShowUsageInfo(!showUsageInfo)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors"
+                style={{ 
+                  backgroundColor: showUsageInfo ? 'var(--info-primary)' : 'var(--bg-secondary)',
+                  color: showUsageInfo ? 'white' : 'var(--text-secondary)'
+                }}
+              >
+                <UIIcon emoji="ℹ️" size="sm" />
+                <span>사용 안내</span>
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+
         {getCurrentAISettings().hasApiKey && (
           <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--success-pastel)' }}>
             <p style={{ color: 'var(--success-dark)' }}>
               ✅ <strong>ChatGPT API 키가 이미 설정되어 있습니다.</strong> AI 기능이 활성화되었습니다.
             </p>
+          </div>
+        )}
+
+        {/* 사용 안내 정보 */}
+        {showUsageInfo && (
+          <div className="mt-4 p-4 rounded-lg border" style={{ backgroundColor: 'var(--info-pastel)', borderColor: 'var(--info-primary)' }}>
+            <div className="mb-3">
+              <h4 className="font-semibold flex items-center space-x-2" style={{ color: 'var(--info-dark)' }}>
+                <UIIcon emoji="💡" size="lg" />
+                <span>AI 서비스 이용 안내</span>
+              </h4>
+            </div>
+            
+            <div className="space-y-3 text-sm" style={{ color: 'var(--info-dark)' }}>
+              <div>
+                <strong>💰 요금 정보:</strong>
+                <ul className="ml-4 mt-1 space-y-1">
+                  <li>• GPT-4: 입력 $0.03/1K토큰, 출력 $0.06/1K토큰</li>
+                  <li>• GPT-3.5: 입력 $0.0015/1K토큰, 출력 $0.002/1K토큰</li>
+                  <li>• 한 번의 채팅당 평균 $0.01-0.05 예상</li>
+                </ul>
+              </div>
+              
+              <div>
+                <strong>🔒 보안 및 개인정보:</strong>
+                <ul className="ml-4 mt-1 space-y-1">
+                  <li>• API 키는 브라우저 로컬 스토리지에만 저장됩니다</li>
+                  <li>• 서버로 전송되지 않으며 사용자만 접근 가능</li>
+                  <li>• 대화 내용은 OpenAI 정책에 따라 처리됩니다</li>
+                </ul>
+              </div>
+              
+              <div>
+                <strong>📊 사용량 관리:</strong>
+                <ul className="ml-4 mt-1 space-y-1">
+                  <li>• OpenAI 플랫폼에서 실시간 사용량 확인 가능</li>
+                  <li>• 월 사용량 한도 설정 권장 ($10-50)</li>
+                  <li>• 과도한 사용 시 자동 알림 설정 가능</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--info-primary)' }}>
+              <p className="text-xs" style={{ color: 'var(--info-dark)' }}>
+                💁‍♀️ <strong>팁:</strong> 처음 사용하신다면 $5-10 정도의 소액으로 시작해보세요. 
+                대부분의 연구 목적으로는 충분합니다.
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -201,9 +297,25 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-              API 키
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                API 키
+              </label>
+              <div className="flex items-center space-x-2">
+                <Tooltip content="API 키 형식: sk-proj-로 시작하는 164자 길이의 문자열">
+                  <UIIcon emoji="❓" size="sm" className="cursor-help" />
+                </Tooltip>
+                {!getCurrentAISettings().hasApiKey && (
+                  <button
+                    onClick={() => setShowGuideModal(true)}
+                    className="text-xs px-2 py-1 rounded font-medium"
+                    style={{ backgroundColor: 'var(--accent-pastel)', color: 'var(--accent-dark)' }}
+                  >
+                    📖 API 키 발급 방법
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <input
@@ -214,40 +326,76 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
                   className="w-full p-3 border rounded-lg"
                   style={{
                     backgroundColor: 'var(--bg-secondary)',
-                    borderColor: 'var(--border-light)',
+                    borderColor: validationStatus.openai === 'valid' ? 'var(--success-primary)' :
+                                 validationStatus.openai === 'invalid' ? 'var(--error-primary)' : 'var(--border-light)',
                     color: 'var(--text-primary)'
                   }}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(prev => ({ ...prev, openai: !prev.openai }))}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  {showApiKey.openai ? '🙈' : '👁️'}
-                </button>
+                <div className="absolute right-12 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                  {validationStatus.openai !== 'none' && (
+                    <Tooltip content={
+                      validationStatus.openai === 'validating' ? '검증 중...' :
+                      validationStatus.openai === 'valid' ? 'API 키가 유효합니다' :
+                      'API 키가 유효하지 않습니다. 다시 확인해주세요.'
+                    }>
+                      <span style={{ color: getValidationColor(validationStatus.openai) }}>
+                        {getValidationIcon(validationStatus.openai)}
+                      </span>
+                    </Tooltip>
+                  )}
+                </div>
+                <Tooltip content={showApiKey.openai ? 'API 키 숨기기' : 'API 키 보기'}>
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(prev => ({ ...prev, openai: !prev.openai }))}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {showApiKey.openai ? '🙈' : '👁️'}
+                  </button>
+                </Tooltip>
               </div>
-              <button
-                onClick={() => validateAPIKey('openai', apiKeys.openai)}
-                disabled={!apiKeys.openai.trim() || validationStatus.openai === 'validating'}
-                className="px-4 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50"
-                style={{ backgroundColor: 'var(--accent-primary)' }}
-              >
-                검증
-              </button>
+              <Tooltip content={
+                !apiKeys.openai.trim() ? 'API 키를 먼저 입력해주세요' :
+                validationStatus.openai === 'validating' ? '검증 중입니다...' :
+                'API 키의 유효성을 검증합니다'
+              }>
+                <button
+                  onClick={() => validateAPIKey('openai', apiKeys.openai)}
+                  disabled={!apiKeys.openai.trim() || validationStatus.openai === 'validating'}
+                  className="px-4 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--accent-primary)' }}
+                >
+                  {validationStatus.openai === 'validating' ? '검증 중...' : '검증'}
+                </button>
+              </Tooltip>
             </div>
           </div>
 
-          <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            <p>💡 OpenAI API 키는 <a 
-              href="https://platform.openai.com/api-keys" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{ color: 'var(--accent-primary)' }}
-            >
-              OpenAI 플랫폼
-            </a>에서 발급받을 수 있습니다.</p>
-            <p>🔒 API 키는 브라우저 로컬 스토리지에 안전하게 저장됩니다.</p>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border" 
+               style={{ backgroundColor: 'var(--accent-pastel)', borderColor: 'var(--accent-primary)' }}>
+            <div className="flex items-start space-x-3">
+              <UIIcon emoji="💡" size="lg" />
+              <div className="text-sm space-y-2" style={{ color: 'var(--accent-dark)' }}>
+                <p>
+                  <strong>API 키 발급:</strong> OpenAI API 키는 <a 
+                    href="https://platform.openai.com/api-keys" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                    style={{ color: 'var(--accent-primary)' }}
+                  >
+                    OpenAI 플랫폼
+                  </a>에서 발급받을 수 있습니다.
+                </p>
+                <p>
+                  <strong>보안:</strong> API 키는 브라우저 로컬 스토리지에만 저장되며, 서버로 전송되지 않습니다.
+                </p>
+                <p>
+                  <strong>비용:</strong> 사용한 만큼만 과금되며, 월 한도 설정을 통해 예산을 관리할 수 있습니다.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -275,16 +423,18 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
 
       {/* 액션 버튼 */}
       <div className="flex justify-between">
-        <button
-          onClick={handleReset}
-          className="px-6 py-3 rounded-lg font-medium transition-colors"
-          style={{ 
-            backgroundColor: 'var(--error-pastel)',
-            color: 'var(--error-dark)'
-          }}
-        >
-          🗑️ 설정 초기화
-        </button>
+        <Tooltip content="모든 AI 설정을 삭제하고 초기 상태로 되돌립니다">
+          <button
+            onClick={handleReset}
+            className="px-6 py-3 rounded-lg font-medium transition-colors"
+            style={{ 
+              backgroundColor: 'var(--error-pastel)',
+              color: 'var(--error-dark)'
+            }}
+          >
+            🗑️ 설정 초기화
+          </button>
+        </Tooltip>
         
         <div className="flex space-x-3">
           {onClose && (
@@ -299,16 +449,29 @@ const AIConfiguration: React.FC<AIConfigurationProps> = ({ onClose }) => {
               취소
             </button>
           )}
-          <button
-            onClick={handleSave}
-            disabled={!apiKeys[selectedProvider].trim()}
-            className="px-6 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50"
-            style={{ backgroundColor: 'var(--success-primary)' }}
-          >
-            💾 저장
-          </button>
+          <Tooltip content={
+            !apiKeys[selectedProvider].trim() ? 'API 키를 먼저 입력해주세요' :
+            validationStatus[selectedProvider] === 'valid' ? 'API 키를 저장하고 AI 기능을 활성화합니다' :
+            'API 키 검증을 먼저 완료해주세요'
+          }>
+            <button
+              onClick={handleSave}
+              disabled={!apiKeys[selectedProvider].trim()}
+              className="px-6 py-3 rounded-lg font-medium text-white transition-colors disabled:opacity-50"
+              style={{ backgroundColor: 'var(--success-primary)' }}
+            >
+              💾 저장
+            </button>
+          </Tooltip>
         </div>
       </div>
+
+      {/* 설정 가이드 모달 */}
+      <APIKeyGuideModal 
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        onApiKeyReceived={handleApiKeyFromGuide}
+      />
     </div>
   );
 };

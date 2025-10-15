@@ -220,6 +220,7 @@ api_patterns = [
     path('projects/', include('apps.projects.urls')),
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
+    path('ai-management/', include('apps.ai_management.urls')),  # AI 관리 시스템
 ]
 
 # Add custom auth endpoints if available

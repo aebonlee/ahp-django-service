@@ -5,6 +5,7 @@ import ResultsAnalysis from '../analysis/ResultsAnalysis';
 import InteractiveTreeModel from '../visualization/InteractiveTreeModel';
 import ExportManager from '../export/ExportManager';
 import HelpSystem from '../help/HelpSystem';
+import AIManagementDashboard from './AIManagementDashboard';
 import type { UserRole } from '../../types';
 
 // 구독 서비스 관련 인터페이스
@@ -66,7 +67,7 @@ interface OperationalStats {
   dailyActiveUsers: number;
 }
 
-type TabType = 'dashboard' | 'subscriptions' | 'users' | 'projects' | 'revenue' | 'analytics' | 'system' | 'settings';
+type TabType = 'dashboard' | 'subscriptions' | 'users' | 'projects' | 'revenue' | 'analytics' | 'system' | 'settings' | 'ai-management';
 
 interface SuperAdminDashboardProps {
   activeTab?: TabType;
@@ -935,6 +936,27 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               { id: 'revenue', label: '수익 분석', icon: '💰', desc: '매출 및 재무 현황' },
               { id: 'analytics', label: '분석 도구', icon: '🔬', desc: '고급 AHP 분석' },
               { id: 'system', label: '시스템 관리', icon: '⚡', desc: '서버 및 성능 모니터링' },
+              { id: 'ai-management', label: 'AI 관리', icon: '🤖', desc: 'AI 서비스 통합 관리' }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleTabChange(item.id as TabType)}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
+                  activeTab === item.id
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                }`}
+              >
+                <div className="text-2xl mb-2">{item.icon}</div>
+                <div className="font-medium text-sm">{item.label}</div>
+                <div className="text-xs text-gray-500 mt-1">{item.desc}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Third Row - Additional Management */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
               { id: 'settings', label: '설정 관리', icon: '⚙️', desc: '전역 설정 및 정책' }
             ].map((item) => (
               <button
@@ -976,6 +998,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 return renderSystem();
               case 'settings':
                 return renderSettings();
+              case 'ai-management':
+                return <AIManagementDashboard userRole="superadmin" />;
               default:
                 return renderDashboard();
             }

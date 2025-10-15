@@ -335,3 +335,6 @@ REST_AUTH = {
 
 # Social account adapter
 SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.DefaultSocialAccountAdapter'
+
+# AI Management Settings
+AI_ENCRYPTION_KEY = config('AI_ENCRYPTION_KEY', default='your-32-byte-encryption-key-here-12345')
