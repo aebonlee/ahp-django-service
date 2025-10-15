@@ -2,8 +2,11 @@
 set -o errexit
 # Force rebuild - 2025-10-16
 
-# Change to the Django app directory
+# Change to the Django app directory  
 cd "$(dirname "$0")"
+echo "Current directory: $(pwd)"
+echo "Listing directory contents:"
+ls -la
 
 echo "Installing dependencies..."
 pip install -r requirements.txt
