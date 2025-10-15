@@ -184,7 +184,8 @@ def api_root(request):
                 'accounts': request.build_absolute_uri('/api/accounts/'),
                 'projects': request.build_absolute_uri('/api/projects/'),
                 'evaluations': request.build_absolute_uri('/api/evaluations/'),
-                'analysis': request.build_absolute_uri('/api/analysis/')
+                'analysis': request.build_absolute_uri('/api/analysis/'),
+                'ai_management': request.build_absolute_uri('/api/ai-management/')
             }
         },
         'service_endpoints': {
@@ -197,7 +198,8 @@ def api_root(request):
                 'accounts': request.build_absolute_uri('/api/service/accounts/'),
                 'projects': request.build_absolute_uri('/api/service/projects/'),
                 'evaluations': request.build_absolute_uri('/api/service/evaluations/'),
-                'analysis': request.build_absolute_uri('/api/service/analysis/')
+                'analysis': request.build_absolute_uri('/api/service/analysis/'),
+                'ai_management': request.build_absolute_uri('/api/service/ai-management/')
             }
         },
         'documentation': {
@@ -237,6 +239,7 @@ api_patterns = [
     path('projects/', include('apps.projects.urls')),
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
+    path('ai-management/', include('apps.ai_management.urls')),
     
     # Common endpoints (health, status, etc.)
     path('', include('apps.common.urls')),
@@ -313,7 +316,8 @@ urlpatterns = [
             'AHP Evaluations',
             'Results Analysis',
             'Workshop Management',
-            'Data Export'
+            'Data Export',
+            'AI Management System'
         ]
     })),
 ]
