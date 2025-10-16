@@ -354,11 +354,20 @@ class DemographicSurvey(models.Model):
     decision_role = models.CharField(max_length=20, choices=DECISION_ROLE_CHOICES, blank=True)
     additional_info = models.TextField(blank=True)
     
+    # 추가 필드 (새로 추가)
+    industry = models.CharField(max_length=100, blank=True, help_text="산업 분야")
+    custom_fields = models.JSONField(default=dict, blank=True, help_text="연구자가 추가한 커스텀 필드 응답")
+    
     # 메타데이터
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     is_completed = models.BooleanField(default=False)
     completion_timestamp = models.DateTimeField(null=True, blank=True)
+    
+    # 접속 정보 (새로 추가)
+    ip_address = models.GenericIPAddressField(null=True, blank=True, help_text="평가자 IP 주소")
+    user_agent = models.TextField(blank=True, help_text="브라우저 정보")
+    completion_time_seconds = models.IntegerField(null=True, blank=True, help_text="설문 완료 소요 시간(초)")
     
     class Meta:
         db_table = 'demographic_surveys'

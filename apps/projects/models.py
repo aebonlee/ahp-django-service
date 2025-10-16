@@ -77,6 +77,26 @@ class Project(models.Model):
     tags = models.JSONField(default=list, blank=True)
     settings = models.JSONField(default=dict, blank=True)
     
+    # Demographic Survey Integration (새로 추가)
+    demographic_survey_config = models.JSONField(default=dict, blank=True, 
+                                                 help_text="인구통계학적 설문 설정")
+    require_demographics = models.BooleanField(default=True, 
+                                              help_text="인구통계 설문 필수 여부")
+    qr_code_url = models.TextField(blank=True, null=True, 
+                                  help_text="생성된 QR코드 이미지 URL")
+    short_link = models.CharField(max_length=50, blank=True, null=True, unique=True,
+                                 help_text="단축 URL 코드")
+    evaluation_flow_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('survey_first', '설문조사 먼저'),
+            ('ahp_first', 'AHP 평가 먼저'),
+            ('parallel', '병렬 진행')
+        ],
+        default='survey_first',
+        help_text="평가 진행 순서"
+    )
+    
     class Meta:
         app_label = 'projects'
         db_table = 'ahp_projects'

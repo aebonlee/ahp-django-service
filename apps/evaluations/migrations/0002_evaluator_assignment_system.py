@@ -15,11 +15,108 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add metadata field to EvaluationInvitation
-        migrations.AddField(
-            model_name='evaluationinvitation',
-            name='metadata',
-            field=models.JSONField(blank=True, default=dict),
+        # Create Evaluation model first
+        migrations.CreateModel(
+            name='Evaluation',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('title', models.CharField(blank=True, max_length=200)),
+                ('instructions', models.TextField(blank=True)),
+                ('status', models.CharField(choices=[('pending', '대기중'), ('in_progress', '진행중'), ('completed', '완료'), ('expired', '만료')], default='pending', max_length=20)),
+                ('progress', models.FloatField(default=0.0)),
+                ('started_at', models.DateTimeField(blank=True, null=True)),
+                ('completed_at', models.DateTimeField(blank=True, null=True)),
+                ('expires_at', models.DateTimeField(blank=True, null=True)),
+                ('consistency_ratio', models.FloatField(blank=True, null=True)),
+                ('is_consistent', models.BooleanField(default=False)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('metadata', models.JSONField(blank=True, default=dict)),
+                ('evaluator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='evaluations', to=settings.AUTH_USER_MODEL)),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='evaluations', to='projects.project')),
+            ],
+            options={
+                'db_table': 'evaluations',
+                'ordering': ['-created_at'],
+            },
+        ),
+        
+        # Add unique constraint to Evaluation
+        migrations.AlterUniqueTogether(
+            name='evaluation',
+            unique_together={('project', 'evaluator')},
+        ),
+        
+        # Create PairwiseComparison model
+        migrations.CreateModel(
+            name='PairwiseComparison',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('value', models.FloatField()),
+                ('comment', models.TextField(blank=True)),
+                ('confidence', models.IntegerField(default=5)),
+                ('answered_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('time_spent', models.FloatField(default=0.0, help_text="Time spent in seconds")),
+                ('evaluation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pairwise_comparisons', to='evaluations.evaluation')),
+                ('criteria_a', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comparisons_as_a', to='projects.criteria')),
+                ('criteria_b', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comparisons_as_b', to='projects.criteria')),
+            ],
+            options={
+                'db_table': 'pairwise_comparisons',
+            },
+        ),
+        
+        # Add unique constraint to PairwiseComparison
+        migrations.AlterUniqueTogether(
+            name='pairwisecomparison',
+            unique_together={('evaluation', 'criteria_a', 'criteria_b')},
+        ),
+        
+        # Create EvaluationSession model
+        migrations.CreateModel(
+            name='EvaluationSession',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('started_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('ended_at', models.DateTimeField(blank=True, null=True)),
+                ('duration', models.FloatField(default=0.0, help_text="Duration in seconds")),
+                ('page_views', models.JSONField(default=list)),
+                ('interactions', models.JSONField(default=list)),
+                ('user_agent', models.TextField(blank=True)),
+                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
+                ('evaluation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to='evaluations.evaluation')),
+            ],
+            options={
+                'db_table': 'evaluation_sessions',
+                'ordering': ['-started_at'],
+            },
+        ),
+        
+        # Create EvaluationInvitation model
+        migrations.CreateModel(
+            name='EvaluationInvitation',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('message', models.TextField(blank=True)),
+                ('status', models.CharField(choices=[('pending', '대기중'), ('accepted', '수락'), ('declined', '거절'), ('expired', '만료')], default='pending', max_length=20)),
+                ('sent_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('responded_at', models.DateTimeField(blank=True, null=True)),
+                ('expires_at', models.DateTimeField(blank=True, null=True)),
+                ('token', models.UUIDField(default=uuid.uuid4, unique=True)),
+                ('metadata', models.JSONField(blank=True, default=dict)),
+                ('evaluator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='evaluation_invitations', to=settings.AUTH_USER_MODEL)),
+                ('invited_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_invitations', to=settings.AUTH_USER_MODEL)),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invitations', to='projects.project')),
+            ],
+            options={
+                'db_table': 'evaluation_invitations',
+            },
+        ),
+        
+        # Add unique constraint to EvaluationInvitation
+        migrations.AlterUniqueTogether(
+            name='evaluationinvitation',
+            unique_together={('project', 'evaluator')},
         ),
         
         # Add indexes to EvaluationInvitation
@@ -34,6 +131,40 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='evaluationinvitation',
             index=models.Index(fields=['expires_at'], name='evaluation__expires_idx'),
+        ),
+        
+        # Create DemographicSurvey model
+        migrations.CreateModel(
+            name='DemographicSurvey',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('age', models.CharField(blank=True, choices=[('20s', '20대'), ('30s', '30대'), ('40s', '40대'), ('50s', '50대'), ('60s', '60대 이상')], max_length=10)),
+                ('gender', models.CharField(blank=True, choices=[('male', '남성'), ('female', '여성'), ('other', '기타'), ('prefer-not', '응답하지 않음')], max_length=15)),
+                ('education', models.CharField(blank=True, choices=[('high-school', '고등학교 졸업'), ('bachelor', '학사'), ('master', '석사'), ('phd', '박사'), ('other', '기타')], max_length=20)),
+                ('occupation', models.CharField(blank=True, max_length=100)),
+                ('experience', models.CharField(blank=True, choices=[('less-1', '1년 미만'), ('1-3', '1-3년'), ('3-5', '3-5년'), ('5-10', '5-10년'), ('more-10', '10년 이상')], max_length=10)),
+                ('department', models.CharField(blank=True, max_length=100)),
+                ('position', models.CharField(blank=True, max_length=100)),
+                ('project_experience', models.CharField(blank=True, choices=[('none', '없음'), ('1-2', '1-2회'), ('3-5', '3-5회'), ('more-5', '5회 이상')], max_length=10)),
+                ('decision_role', models.CharField(blank=True, choices=[('decision-maker', '최종 의사결정권자'), ('advisor', '자문/조언자'), ('analyst', '분석가'), ('evaluator', '평가자'), ('observer', '관찰자')], max_length=20)),
+                ('additional_info', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('is_completed', models.BooleanField(default=False)),
+                ('completion_timestamp', models.DateTimeField(blank=True, null=True)),
+                ('evaluator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='demographic_surveys', to=settings.AUTH_USER_MODEL)),
+                ('project', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='demographic_surveys', to='projects.project')),
+            ],
+            options={
+                'db_table': 'demographic_surveys',
+                'ordering': ['-created_at'],
+            },
+        ),
+        
+        # Add unique constraint to DemographicSurvey
+        migrations.AlterUniqueTogether(
+            name='demographicsurvey',
+            unique_together={('evaluator', 'project')},
         ),
         
         # Create BulkInvitation model
