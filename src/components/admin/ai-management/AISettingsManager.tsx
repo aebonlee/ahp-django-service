@@ -128,11 +128,13 @@ const AISettingsManager: React.FC = () => {
     if (!editingSettings) return;
 
     try {
-      const updateData = { ...formData };
       // API 키가 변경되지 않았으면 제거
-      if (!updateData.api_key) {
-        delete updateData.api_key;
-      }
+      const updateData = formData.api_key 
+        ? { ...formData }
+        : (() => {
+            const { api_key, ...dataWithoutApiKey } = formData;
+            return dataWithoutApiKey;
+          })();
 
       const response = await fetch(`${apiBaseUrl}/ai-management/api/settings/${editingSettings.id}/`, {
         method: 'PUT',

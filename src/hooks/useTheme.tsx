@@ -28,17 +28,19 @@ export const useTheme = () => {
       }
     };
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
     
-    if (theme === 'system') {
+    if (theme === 'system' && mediaQuery) {
       applyTheme(mediaQuery.matches ? 'dark' : 'light');
       mediaQuery.addEventListener('change', handleSystemThemeChange);
-    } else {
+    } else if (theme !== 'system') {
       applyTheme(theme);
     }
 
     return () => {
-      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      if (mediaQuery) {
+        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      }
     };
   }, [theme]);
 
