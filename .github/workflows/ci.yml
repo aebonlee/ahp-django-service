@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Django Backend CI
 
 on:
   push:
@@ -7,61 +7,53 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  django-test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: test_ahp_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Clear npm cache
-      run: npm cache clean --force
+        python-version: '3.11'
         
     - name: Install dependencies
-      run: npm install --legacy-peer-deps
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
         
-    - name: Build application
-      run: npm run build
+    - name: Run Django checks
+      run: python manage.py check
       env:
-        CI: false
-        GENERATE_SOURCEMAP: false
+        DATABASE_URL: postgresql://test_user:test_password@localhost/test_ahp_db
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
         
-    - name: Run linter (optional)
-      run: npm run lint --if-present || echo "Linter not available or failed"
-      continue-on-error: true
+    - name: Run migrations
+      run: python manage.py migrate
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost/test_ahp_db
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
         
-    - name: Check for build output
-      run: ls -la build/ && echo "Build successful!"
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-files
-        path: build/
-        retention-days: 1
-        
-  security-check:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm install --legacy-peer-deps
-        
-    - name: Run security audit
-      run: npm audit --audit-level critical || echo "Security audit completed with warnings"
+    - name: Run tests
+      run: python manage.py test
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost/test_ahp_db
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
