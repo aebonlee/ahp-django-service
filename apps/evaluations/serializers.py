@@ -4,7 +4,11 @@ Serializers for Evaluation API
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import models as db_models
-from .models import Evaluation, PairwiseComparison, EvaluationInvitation, EvaluationSession, DemographicSurvey
+from .models import (
+    Evaluation, PairwiseComparison, EvaluationInvitation, 
+    EvaluationSession, DemographicSurvey, BulkInvitation,
+    EvaluationTemplate, EvaluationAccessLog, EmailDeliveryStatus
+)
 from apps.projects.serializers import ProjectSerializer, CriteriaSerializer
 
 User = get_user_model()
@@ -321,3 +325,164 @@ class DemographicSurveyListSerializer(serializers.ModelSerializer):
                 'status': obj.project.status
             }
         return None
+
+
+class BulkInvitationSerializer(serializers.ModelSerializer):
+    """대량 초대 Serializer"""
+    project_title = serializers.CharField(source='project.title', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    success_rate = serializers.ReadOnlyField()
+    processing_time = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = BulkInvitation
+        fields = [
+            'id', 'project', 'project_title', 'created_by', 'created_by_name',
+            'total_count', 'sent_count', 'failed_count', 'accepted_count',
+            'status', 'celery_task_id', 'created_at', 'started_at', 'completed_at',
+            'results', 'error_log', 'success_rate', 'processing_time'
+        ]
+        read_only_fields = [
+            'celery_task_id', 'started_at', 'completed_at', 'results', 'error_log'
+        ]
+
+
+class BulkInvitationCreateSerializer(serializers.Serializer):
+    """대량 초대 생성 Serializer"""
+    project_id = serializers.IntegerField()
+    evaluator_emails = serializers.ListField(
+        child=serializers.EmailField(),
+        allow_empty=False
+    )
+    template_id = serializers.IntegerField(required=False)
+    custom_message = serializers.CharField(required=False, allow_blank=True)
+    expiry_days = serializers.IntegerField(default=30, min_value=1, max_value=365)
+    
+    def validate_evaluator_emails(self, value):
+        """이메일 유효성 검사"""
+        if len(value) > 1000:
+            raise serializers.ValidationError("최대 1000명까지 초대할 수 있습니다.")
+        
+        # 중복 이메일 제거
+        unique_emails = list(set(value))
+        if len(unique_emails) < len(value):
+            self.context['duplicate_count'] = len(value) - len(unique_emails)
+            
+        return unique_emails
+    
+    def validate_project_id(self, value):
+        """프로젝트 유효성 검사"""
+        from apps.projects.models import Project
+        try:
+            project = Project.objects.get(id=value)
+            request = self.context.get('request')
+            if request and project.owner != request.user:
+                raise serializers.ValidationError("프로젝트 소유자만 초대할 수 있습니다.")
+        except Project.DoesNotExist:
+            raise serializers.ValidationError("프로젝트를 찾을 수 없습니다.")
+        return value
+
+
+class EvaluationTemplateSerializer(serializers.ModelSerializer):
+    """평가 템플릿 Serializer"""
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    
+    class Meta:
+        model = EvaluationTemplate
+        fields = [
+            'id', 'name', 'description', 'instructions',
+            'email_subject', 'email_body', 'reminder_subject', 'reminder_body',
+            'auto_reminder', 'reminder_days', 'expiry_days',
+            'created_by', 'created_by_name', 'created_at', 'updated_at',
+            'is_default', 'is_active'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        """템플릿 생성"""
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data['created_by'] = request.user
+        return super().create(validated_data)
+
+
+class EvaluationAccessLogSerializer(serializers.ModelSerializer):
+    """평가 접근 로그 Serializer"""
+    evaluation_info = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = EvaluationAccessLog
+        fields = [
+            'id', 'evaluation', 'evaluation_info', 'action', 'timestamp',
+            'ip_address', 'user_agent', 'metadata'
+        ]
+        read_only_fields = ['timestamp']
+    
+    def get_evaluation_info(self, obj):
+        """평가 정보"""
+        return {
+            'id': str(obj.evaluation.id),
+            'project_title': obj.evaluation.project.title,
+            'evaluator_name': obj.evaluation.evaluator.get_full_name()
+        }
+
+
+class EmailDeliveryStatusSerializer(serializers.ModelSerializer):
+    """이메일 발송 상태 Serializer"""
+    evaluator_email = serializers.CharField(source='invitation.evaluator.email', read_only=True)
+    evaluator_name = serializers.CharField(source='invitation.evaluator.get_full_name', read_only=True)
+    
+    class Meta:
+        model = EmailDeliveryStatus
+        fields = [
+            'id', 'invitation', 'bulk_invitation', 'evaluator_email', 'evaluator_name',
+            'status', 'sent_at', 'delivered_at', 'opened_at', 'clicked_at',
+            'error_message', 'retry_count', 'metadata'
+        ]
+        read_only_fields = [
+            'sent_at', 'delivered_at', 'opened_at', 'clicked_at'
+        ]
+
+
+class EvaluatorAssignmentProgressSerializer(serializers.Serializer):
+    """평가자 배정 진행률 Serializer"""
+    project_id = serializers.IntegerField()
+    total_evaluators = serializers.IntegerField()
+    completed = serializers.IntegerField()
+    in_progress = serializers.IntegerField()
+    pending = serializers.IntegerField()
+    overall_progress = serializers.FloatField()
+    evaluators = serializers.ListField(child=serializers.DictField())
+    
+    def to_representation(self, instance):
+        """진행률 데이터 표현"""
+        project = instance
+        evaluations = Evaluation.objects.filter(project=project)
+        
+        total = evaluations.count()
+        completed = evaluations.filter(status='completed').count()
+        in_progress = evaluations.filter(status='in_progress').count()
+        pending = evaluations.filter(status='pending').count()
+        
+        evaluator_progress = []
+        for eval in evaluations.select_related('evaluator'):
+            evaluator_progress.append({
+                'evaluator_id': eval.evaluator.id,
+                'evaluator_name': eval.evaluator.get_full_name(),
+                'evaluator_email': eval.evaluator.email,
+                'status': eval.status,
+                'progress': eval.progress,
+                'consistency_ratio': eval.consistency_ratio,
+                'started_at': eval.started_at.isoformat() if eval.started_at else None,
+                'completed_at': eval.completed_at.isoformat() if eval.completed_at else None
+            })
+        
+        return {
+            'project_id': project.id,
+            'total_evaluators': total,
+            'completed': completed,
+            'in_progress': in_progress,
+            'pending': pending,
+            'overall_progress': (completed / total * 100) if total > 0 else 0,
+            'evaluators': evaluator_progress
+        }

@@ -5,8 +5,10 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Q, Count, Avg
 import uuid
 import numpy as np
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -237,9 +239,17 @@ class EvaluationInvitation(models.Model):
     # Token for secure access
     token = models.UUIDField(default=uuid.uuid4, unique=True)
     
+    # Additional fields for email tracking
+    metadata = models.JSONField(default=dict, blank=True)
+    
     class Meta:
         db_table = 'evaluation_invitations'
         unique_together = ['project', 'evaluator']
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['project', 'status']),
+            models.Index(fields=['expires_at']),
+        ]
         
     def __str__(self):
         return f"Invitation to {self.evaluator.username} for {self.project.title}"
@@ -372,3 +382,196 @@ class DemographicSurvey(models.Model):
         required_fields = ['age', 'gender', 'education', 'occupation', 'experience', 'project_experience', 'decision_role']
         completed_fields = sum(1 for field in required_fields if getattr(self, field))
         return (completed_fields / len(required_fields)) * 100
+
+
+class BulkInvitation(models.Model):
+    """대량 초대 작업 추적"""
+    
+    STATUS_CHOICES = [
+        ('pending', '대기중'),
+        ('processing', '처리중'),
+        ('completed', '완료'),
+        ('failed', '실패'),
+    ]
+    
+    # Basic information
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='bulk_invitations')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bulk_invitations_created')
+    
+    # Invitation info
+    total_count = models.IntegerField(default=0)
+    sent_count = models.IntegerField(default=0)
+    failed_count = models.IntegerField(default=0)
+    accepted_count = models.IntegerField(default=0)
+    
+    # Status tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    celery_task_id = models.CharField(max_length=100, blank=True)
+    
+    # Timing
+    created_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    # Results
+    results = models.JSONField(default=dict)
+    error_log = models.TextField(blank=True)
+    
+    class Meta:
+        db_table = 'bulk_invitations'
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"Bulk Invitation {self.id} for {self.project.title}"
+    
+    def start_processing(self):
+        """Start processing bulk invitations"""
+        if self.status == 'pending':
+            self.status = 'processing'
+            self.started_at = timezone.now()
+            self.save()
+    
+    def complete_processing(self):
+        """Complete processing"""
+        if self.status == 'processing':
+            self.status = 'completed'
+            self.completed_at = timezone.now()
+            self.save()
+    
+    def mark_failed(self, error_message=""):
+        """Mark as failed"""
+        self.status = 'failed'
+        self.completed_at = timezone.now()
+        self.error_log = error_message
+        self.save()
+    
+    @property
+    def success_rate(self):
+        """Calculate success rate"""
+        if self.total_count > 0:
+            return (self.sent_count / self.total_count) * 100
+        return 0
+    
+    @property
+    def processing_time(self):
+        """Calculate processing time"""
+        if self.started_at and self.completed_at:
+            return (self.completed_at - self.started_at).total_seconds()
+        return None
+
+
+class EvaluationTemplate(models.Model):
+    """평가 템플릿"""
+    
+    # Basic information
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    
+    # Template content
+    instructions = models.TextField()
+    email_subject = models.CharField(max_length=200, default='AHP 평가 요청')
+    email_body = models.TextField()
+    reminder_subject = models.CharField(max_length=200, blank=True)
+    reminder_body = models.TextField(blank=True)
+    
+    # Settings
+    auto_reminder = models.BooleanField(default=True)
+    reminder_days = models.IntegerField(default=3)
+    expiry_days = models.IntegerField(default=30)
+    
+    # Metadata
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='evaluation_templates')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_default = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'evaluation_templates'
+        ordering = ['name']
+        
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one default template
+        if self.is_default:
+            EvaluationTemplate.objects.filter(is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+
+class EvaluationAccessLog(models.Model):
+    """평가 접근 로그"""
+    
+    ACTION_CHOICES = [
+        ('session_started', '세션 시작'),
+        ('comparison_saved', '비교 저장'),
+        ('evaluation_completed', '평가 완료'),
+        ('token_validated', '토큰 검증'),
+        ('access_denied', '접근 거부'),
+    ]
+    
+    # Basic information
+    evaluation = models.ForeignKey(Evaluation, on_delete=models.CASCADE, related_name='access_logs')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Access information
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    # Additional data
+    metadata = models.JSONField(default=dict)
+    
+    class Meta:
+        db_table = 'evaluation_access_logs'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['evaluation', 'timestamp']),
+            models.Index(fields=['action']),
+        ]
+        
+    def __str__(self):
+        return f"{self.evaluation} - {self.action} at {self.timestamp}"
+
+
+class EmailDeliveryStatus(models.Model):
+    """이메일 발송 상태 추적"""
+    
+    STATUS_CHOICES = [
+        ('pending', '대기중'),
+        ('sent', '발송됨'),
+        ('delivered', '전달됨'),
+        ('opened', '열람됨'),
+        ('clicked', '클릭됨'),
+        ('bounced', '반송됨'),
+        ('failed', '실패'),
+    ]
+    
+    # Basic information
+    invitation = models.ForeignKey(EvaluationInvitation, on_delete=models.CASCADE, related_name='email_status')
+    bulk_invitation = models.ForeignKey(BulkInvitation, on_delete=models.CASCADE, null=True, blank=True, related_name='email_statuses')
+    
+    # Status tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Timing
+    sent_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    opened_at = models.DateTimeField(null=True, blank=True)
+    clicked_at = models.DateTimeField(null=True, blank=True)
+    
+    # Error tracking
+    error_message = models.TextField(blank=True)
+    retry_count = models.IntegerField(default=0)
+    
+    # Metadata
+    metadata = models.JSONField(default=dict)
+    
+    class Meta:
+        db_table = 'email_delivery_status'
+        ordering = ['-sent_at']
+        
+    def __str__(self):
+        return f"Email to {self.invitation.evaluator.email} - {self.status}"
