@@ -16,6 +16,8 @@ from .views import (
     SubscriptionStatsView
 )
 
+app_name = 'subscriptions'
+
 # DRF Router 설정
 router = DefaultRouter()
 router.register(r'plans', SubscriptionPlanViewSet, basename='subscription-plans')
@@ -42,5 +44,3 @@ urlpatterns = [
     # 통계 (관리자 전용)
     path('stats/', SubscriptionStatsView.as_view(), name='subscription-stats'),
 ]
-
-app_name = 'subscriptions'
