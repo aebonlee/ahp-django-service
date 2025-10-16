@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-강제 데이터베이스 연결 테스트
-환경변수 없이도 PostgreSQL 연결 확인
+데이터베이스 연결 테스트
+환경변수 또는 .env 파일에서 DATABASE_URL을 읽어 PostgreSQL 연결 확인
 """
 import os
 import sys
 import django
 from django.conf import settings
+from decouple import config
 
 # Django 설정 강제 적용
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ahp_backend.settings')
@@ -64,8 +65,15 @@ def test_connection():
         return False
 
 if __name__ == "__main__":
-    # 환경변수 강제 설정
-    os.environ['DATABASE_URL'] = 'postgresql://ahp_app_user:xEcCdn2WB32sxLYIPAncc9cHARXf1t6d@dpg-d2vgtg3uibrs738jk4i0-a.oregon-postgres.render.com/ahp_app'
+    # 환경변수 또는 .env 파일에서 DATABASE_URL 읽기
+    try:
+        database_url = config('DATABASE_URL')
+        os.environ['DATABASE_URL'] = database_url
+        print(f"✅ DATABASE_URL loaded from environment")
+    except Exception as e:
+        print("❌ DATABASE_URL not found in environment variables or .env file")
+        print("   Please check your .env file or set DATABASE_URL environment variable")
+        sys.exit(1)
     
     success = test_connection()
     sys.exit(0 if success else 1)

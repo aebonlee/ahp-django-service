@@ -100,8 +100,8 @@ WSGI_APPLICATION = 'ahp_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Database configuration - SIMPLE AND CLEAN
-database_url = config('DATABASE_URL', 
-    default='postgresql://ahp_app_user:xEcCdn2WB32sxLYIPAncc9cHARXf1t6d@dpg-d2vgtg3uibrs738jk4i0-a.oregon-postgres.render.com/ahp_app')
+# DATABASE_URL must be set in environment variables or .env file
+database_url = config('DATABASE_URL')
 
 DATABASES = {
     'default': dj_database_url.parse(database_url)
