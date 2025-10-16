@@ -5,12 +5,14 @@ Analysis URLs - AHP 분석 API 엔드포인트 라우팅
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import AnalysisViewSet
+from .views_advanced import AdvancedAnalysisViewSet
 
 app_name = 'analysis'
 
 # DRF Router 설정
 router = DefaultRouter()
 router.register(r'analysis', AnalysisViewSet, basename='analysis')
+router.register(r'advanced', AdvancedAnalysisViewSet, basename='advanced-analysis')
 
 urlpatterns = [
     # DRF Router URLs
