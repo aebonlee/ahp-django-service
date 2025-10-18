@@ -55,7 +55,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             'consistency_ratio_threshold', 'created_at', 'updated_at', 'deleted_at',
             'deadline', 'tags', 'settings', 'criteria', 'members',
             'member_count', 'evaluation_count', 'is_active', 'criteria_count',
-            'alternatives_count'
+            'alternatives_count', 'require_demographics', 'evaluation_flow_type',
+            'demographic_survey_config', 'qr_code_url', 'short_link'
         ]
         read_only_fields = ['created_at', 'updated_at', 'is_active']
         
@@ -75,7 +76,8 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'title', 'description', 'objective', 'visibility', 'evaluation_mode',
-            'workflow_stage', 'consistency_ratio_threshold', 'deadline', 'tags', 'settings'
+            'workflow_stage', 'consistency_ratio_threshold', 'deadline', 'tags', 'settings',
+            'require_demographics', 'evaluation_flow_type', 'demographic_survey_config'
         ]
         
     def create(self, validated_data):
