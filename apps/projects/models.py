@@ -13,9 +13,6 @@ User = get_user_model()
 class Project(models.Model):
     """AHP Project model"""
     
-    # UUID Primary Key for consistency with frontend
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
     STATUS_CHOICES = [
         ('draft', '초안'),
         ('active', '진행중'),
@@ -119,9 +116,6 @@ class Project(models.Model):
 class ProjectMember(models.Model):
     """Project membership with roles"""
     
-    # UUID Primary Key for consistency with frontend
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
     ROLE_CHOICES = [
         ('owner', '소유자'),
         ('manager', '관리자'),
@@ -153,9 +147,6 @@ class ProjectMember(models.Model):
 
 class Criteria(models.Model):
     """AHP Criteria/Alternative model with hierarchical structure"""
-    
-    # UUID Primary Key for consistency with frontend
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     TYPE_CHOICES = [
         ('criteria', '평가기준'),
@@ -199,9 +190,6 @@ class Criteria(models.Model):
 
 class ProjectTemplate(models.Model):
     """Predefined project templates"""
-    
-    # UUID Primary Key for consistency with frontend
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     name = models.CharField(max_length=200)
     description = models.TextField()

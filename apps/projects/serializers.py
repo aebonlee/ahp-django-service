@@ -40,6 +40,8 @@ class ProjectMemberSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
     user_username = serializers.CharField(source='user.username', read_only=True)
     user_email = serializers.CharField(source='user.email', read_only=True)
+    # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
+    id = serializers.SerializerMethodField()
     
     class Meta:
         model = ProjectMember
@@ -49,6 +51,10 @@ class ProjectMemberSerializer(serializers.ModelSerializer):
             'joined_at', 'invited_by'
         ]
         read_only_fields = ['joined_at']
+        
+    def get_id(self, obj):
+        """Convert ID to string for frontend compatibility"""
+        return str(obj.id)
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -57,6 +63,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     members = ProjectMemberSerializer(source='projectmember_set', many=True, read_only=True)
     member_count = serializers.SerializerMethodField()
     evaluation_count = serializers.SerializerMethodField()
+    # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
+    id = serializers.SerializerMethodField()
     
     class Meta:
         model = Project
@@ -70,6 +78,10 @@ class ProjectSerializer(serializers.ModelSerializer):
             'demographic_survey_config', 'qr_code_url', 'short_link'
         ]
         read_only_fields = ['created_at', 'updated_at', 'is_active']
+        
+    def get_id(self, obj):
+        """Convert ID to string for frontend compatibility"""
+        return str(obj.id)
         
     def get_member_count(self, obj):
         """Get total number of project members"""
@@ -119,6 +131,8 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
 class ProjectTemplateSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
+    id = serializers.SerializerMethodField()
     
     class Meta:
         model = ProjectTemplate
@@ -128,11 +142,17 @@ class ProjectTemplateSerializer(serializers.ModelSerializer):
             'usage_count', 'created_at'
         ]
         read_only_fields = ['created_by', 'usage_count', 'created_at']
+        
+    def get_id(self, obj):
+        """Convert ID to string for frontend compatibility"""
+        return str(obj.id)
 
 
 class ProjectSummarySerializer(serializers.ModelSerializer):
     """Lightweight serializer for project lists"""
     owner_name = serializers.CharField(source='owner.get_full_name', read_only=True)
+    # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
+    id = serializers.SerializerMethodField()
     
     class Meta:
         model = Project
@@ -141,3 +161,7 @@ class ProjectSummarySerializer(serializers.ModelSerializer):
             'evaluation_mode', 'workflow_stage', 'created_at', 'updated_at', 
             'deleted_at', 'deadline', 'tags', 'criteria_count', 'alternatives_count'
         ]
+        
+    def get_id(self, obj):
+        """Convert ID to string for frontend compatibility"""
+        return str(obj.id)
