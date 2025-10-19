@@ -416,6 +416,18 @@ class CriteriaViewSet(viewsets.ModelViewSet):
             
             # Set default values if not provided
             data = request.data.copy()
+            
+            # Handle parent ID - convert string ID to integer if needed
+            if data.get('parent') and isinstance(data['parent'], str):
+                try:
+                    # Try to convert string ID to integer for database lookup
+                    parent_id = int(data['parent'])
+                    data['parent'] = parent_id
+                    print(f"Converted parent ID from string '{data['parent']}' to integer {parent_id}")
+                except ValueError:
+                    print(f"Warning: Invalid parent ID format: {data['parent']}")
+                    data['parent'] = None
+            
             if 'type' not in data:
                 data['type'] = 'criteria'
             if 'level' not in data:
