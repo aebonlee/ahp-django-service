@@ -381,7 +381,8 @@ class CriteriaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter criteria based on project access - allow all for development"""
         # 개발/테스트 환경에서는 모든 criteria 접근 허용
-        return Criteria.objects.filter(is_active=True).select_related('project', 'parent')
+        # 계층 구조 순서대로 정렬: 레벨 우선, 같은 레벨에서는 order 순
+        return Criteria.objects.filter(is_active=True).select_related('project', 'parent').order_by('level', 'order')
     
     def create(self, request, *args, **kwargs):
         """Create new criteria with proper validation"""
@@ -423,9 +424,19 @@ class CriteriaViewSet(viewsets.ModelViewSet):
                     # Try to convert string ID to integer for database lookup
                     parent_id = int(data['parent'])
                     data['parent'] = parent_id
-                    print(f"Converted parent ID from string '{data['parent']}' to integer {parent_id}")
+                    print(f"✅ Converted parent ID from string '{data['parent']}' to integer {parent_id}")
                 except ValueError:
-                    print(f"Warning: Invalid parent ID format: {data['parent']}")
+                    print(f"⚠️ Warning: Invalid parent ID format: {data['parent']}")
+                    data['parent'] = None
+            elif data.get('parent_id') and isinstance(data['parent_id'], str):
+                try:
+                    # Also handle parent_id field
+                    parent_id = int(data['parent_id'])
+                    data['parent'] = parent_id
+                    data.pop('parent_id', None)  # Remove parent_id to avoid conflicts
+                    print(f"✅ Converted parent_id from string '{data['parent_id']}' to integer {parent_id}")
+                except ValueError:
+                    print(f"⚠️ Warning: Invalid parent_id format: {data['parent_id']}")
                     data['parent'] = None
             
             if 'type' not in data:

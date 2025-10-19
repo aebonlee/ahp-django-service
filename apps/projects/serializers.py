@@ -14,11 +14,12 @@ class CriteriaSerializer(serializers.ModelSerializer):
     # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
     id = serializers.SerializerMethodField()
     parent = serializers.SerializerMethodField()
+    parent_id = serializers.SerializerMethodField()  # 프론트엔드 호환성을 위해 추가
     
     class Meta:
         model = Criteria
         fields = [
-            'id', 'project', 'name', 'description', 'type', 'parent', 'order', 'level',
+            'id', 'project', 'name', 'description', 'type', 'parent', 'parent_id', 'order', 'level',
             'weight', 'is_active', 'created_at', 'updated_at', 'children', 'full_path'
         ]
         
@@ -28,6 +29,10 @@ class CriteriaSerializer(serializers.ModelSerializer):
         
     def get_parent(self, obj):
         """Convert parent ID to string for frontend compatibility"""
+        return str(obj.parent.id) if obj.parent else None
+        
+    def get_parent_id(self, obj):
+        """Convert parent ID to string for frontend compatibility (alias for parent)"""
         return str(obj.parent.id) if obj.parent else None
         
     def get_children(self, obj):
