@@ -418,26 +418,15 @@ class CriteriaViewSet(viewsets.ModelViewSet):
             # Set default values if not provided
             data = request.data.copy()
             
-            # Handle parent ID - convert string ID to integer if needed
-            if data.get('parent') and isinstance(data['parent'], str):
-                try:
-                    # Try to convert string ID to integer for database lookup
-                    parent_id = int(data['parent'])
-                    data['parent'] = parent_id
-                    print(f"✅ Converted parent ID from string '{data['parent']}' to integer {parent_id}")
-                except ValueError:
-                    print(f"⚠️ Warning: Invalid parent ID format: {data['parent']}")
-                    data['parent'] = None
-            elif data.get('parent_id') and isinstance(data['parent_id'], str):
-                try:
-                    # Also handle parent_id field
-                    parent_id = int(data['parent_id'])
-                    data['parent'] = parent_id
-                    data.pop('parent_id', None)  # Remove parent_id to avoid conflicts
-                    print(f"✅ Converted parent_id from string '{data['parent_id']}' to integer {parent_id}")
-                except ValueError:
-                    print(f"⚠️ Warning: Invalid parent_id format: {data['parent_id']}")
-                    data['parent'] = None
+            # Handle parent ID - keep as is (Django will handle the lookup)
+            if data.get('parent_id') and not data.get('parent'):
+                data['parent'] = data['parent_id']
+                data.pop('parent_id', None)  # Remove parent_id to avoid conflicts
+                print(f"✅ Using parent_id as parent: {data['parent']}")
+            
+            # Log the parent field for debugging
+            if data.get('parent'):
+                print(f"📍 Parent field value: {data['parent']} (type: {type(data['parent'])})")
             
             if 'type' not in data:
                 data['type'] = 'criteria'

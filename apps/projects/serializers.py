@@ -13,8 +13,13 @@ class CriteriaSerializer(serializers.ModelSerializer):
     full_path = serializers.CharField(read_only=True)
     # ID를 문자열로 반환하여 프론트엔드와 호환성 확보
     id = serializers.SerializerMethodField()
-    parent = serializers.SerializerMethodField()
-    parent_id = serializers.SerializerMethodField()  # 프론트엔드 호환성을 위해 추가
+    # parent 필드를 PrimaryKeyRelatedField로 처리하여 쓰기 가능하게 함
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=Criteria.objects.all(),
+        allow_null=True,
+        required=False
+    )
+    parent_id = serializers.SerializerMethodField(read_only=True)  # 읽기 전용 별칭
     
     class Meta:
         model = Criteria
@@ -27,10 +32,6 @@ class CriteriaSerializer(serializers.ModelSerializer):
         """Convert ID to string for frontend compatibility"""
         return str(obj.id)
         
-    def get_parent(self, obj):
-        """Convert parent ID to string for frontend compatibility"""
-        return str(obj.parent.id) if obj.parent else None
-        
     def get_parent_id(self, obj):
         """Convert parent ID to string for frontend compatibility (alias for parent)"""
         return str(obj.parent.id) if obj.parent else None
@@ -39,6 +40,16 @@ class CriteriaSerializer(serializers.ModelSerializer):
         """Get child criteria"""
         children = obj.children.filter(is_active=True).order_by('order')
         return CriteriaSerializer(children, many=True).data
+    
+    def to_representation(self, instance):
+        """Custom representation to return parent as string ID"""
+        data = super().to_representation(instance)
+        # parent를 ID 문자열로 변환
+        if instance.parent:
+            data['parent'] = str(instance.parent.id)
+        else:
+            data['parent'] = None
+        return data
 
 
 class ProjectMemberSerializer(serializers.ModelSerializer):
