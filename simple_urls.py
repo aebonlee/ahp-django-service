@@ -223,6 +223,8 @@ api_patterns = [
     path('evaluations/', include('apps.evaluations.urls')),
     path('analysis/', include('apps.analysis.urls')),
     path('subscriptions/', include('apps.subscriptions.urls')),
+    path('exports/', include('apps.exports.urls')),
+    path('workshops/', include('apps.workshops.urls')),
 ]
 
 # Add custom auth endpoints if available
