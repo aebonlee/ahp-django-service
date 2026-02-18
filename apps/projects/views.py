@@ -5,6 +5,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction, models
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -18,35 +19,24 @@ from apps.common.permissions import IsOwnerOrReadOnly
 
 class ProjectViewSet(viewsets.ModelViewSet):
     """ViewSet for managing projects"""
-    
-    authentication_classes = []
-    permission_classes = [permissions.AllowAny]
+
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'visibility', 'owner']
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'title']
     ordering = ['-created_at']
-    
-    def get_permissions(self):
-        """
-        Override to always allow any request
-        """
-        return [permissions.AllowAny()]
-    
+
     def get_queryset(self):
         """Filter projects based on user permissions and visibility"""
         user = self.request.user
-        
+
         # Exclude deleted projects by default
         base_queryset = Project.objects.filter(deleted_at__isnull=True)
-        
-        # 익명 사용자는 모든 프로젝트 조회 가능 (개발/테스트용)
-        if not user.is_authenticated:
-            return base_queryset.select_related('owner').prefetch_related('collaborators')
-        
+
         if user.is_superuser:
             return base_queryset
-            
+
         # Users can see projects they own, collaborate on, or are public
         return base_queryset.filter(
             models.Q(owner=user) |
@@ -370,19 +360,31 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class CriteriaViewSet(viewsets.ModelViewSet):
     """ViewSet for managing criteria"""
-    
+
     serializer_class = CriteriaSerializer
-    authentication_classes = []
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['project', 'type', 'parent', 'level']
     ordering = ['level', 'order']
-    
+
     def get_queryset(self):
-        """Filter criteria based on project access - allow all for development"""
-        # 개발/테스트 환경에서는 모든 criteria 접근 허용
-        # 계층 구조 순서대로 정렬: 레벨 우선, 같은 레벨에서는 order 순
-        return Criteria.objects.filter(is_active=True).select_related('project', 'parent').order_by('level', 'order')
+        """Filter criteria based on project access"""
+        user = self.request.user
+
+        if user.is_superuser:
+            return Criteria.objects.filter(is_active=True).select_related('project', 'parent').order_by('level', 'order')
+
+        # Only return criteria for projects the user has access to
+        accessible_projects = Project.objects.filter(
+            models.Q(owner=user) |
+            models.Q(collaborators=user) |
+            models.Q(visibility='public')
+        ).values_list('id', flat=True)
+
+        return Criteria.objects.filter(
+            is_active=True,
+            project__in=accessible_projects
+        ).select_related('project', 'parent').order_by('level', 'order')
     
     def create(self, request, *args, **kwargs):
         """Create new criteria with proper validation"""
