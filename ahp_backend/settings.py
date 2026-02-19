@@ -211,13 +211,14 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Additional CORS settings for production
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+# CORS_ALLOW_ALL_ORIGINS is always False in production for security.
+# Use CORS_ALLOWED_ORIGINS list above to whitelist specific origins.
+CORS_ALLOW_ALL_ORIGINS = False
 
-# Allow null origin for local file testing in development
+# Allow null origin for local file testing in development only
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^file://.*$",  # Allow file:// protocol for local testing
-]
+] if DEBUG else []
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
