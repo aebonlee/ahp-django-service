@@ -17,23 +17,28 @@ User = get_user_model()
 class PairwiseComparisonSerializer(serializers.ModelSerializer):
     criteria_a_name = serializers.CharField(source='criteria_a.name', read_only=True)
     criteria_b_name = serializers.CharField(source='criteria_b.name', read_only=True)
-    
+
     class Meta:
         model = PairwiseComparison
         fields = [
-            'id', 'criteria_a', 'criteria_b', 'criteria_a_name', 'criteria_b_name',
+            'id', 'evaluation', 'criteria_a', 'criteria_b', 'criteria_a_name', 'criteria_b_name',
             'value', 'comment', 'confidence', 'answered_at', 'time_spent'
         ]
         read_only_fields = ['answered_at']
-        
+
     def validate(self, data):
         """Validate pairwise comparison data"""
-        if data['criteria_a'] == data['criteria_b']:
+        # Use instance values as fallback for partial updates (PATCH)
+        criteria_a = data.get('criteria_a', getattr(self.instance, 'criteria_a', None))
+        criteria_b = data.get('criteria_b', getattr(self.instance, 'criteria_b', None))
+        value = data.get('value', getattr(self.instance, 'value', None))
+
+        if criteria_a and criteria_b and criteria_a == criteria_b:
             raise serializers.ValidationError("Cannot compare criteria with itself")
-            
-        if not (1/9 <= data['value'] <= 9):
+
+        if value is not None and not (1/9 <= value <= 9):
             raise serializers.ValidationError("Comparison value must be between 1/9 and 9")
-            
+
         return data
 
 

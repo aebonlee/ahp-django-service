@@ -110,14 +110,18 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class ProjectCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating projects"""
-    
+    id = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Project
         fields = [
-            'title', 'description', 'objective', 'visibility', 'evaluation_mode',
+            'id', 'title', 'description', 'objective', 'visibility', 'evaluation_mode',
             'workflow_stage', 'consistency_ratio_threshold', 'deadline', 'tags', 'settings',
             'require_demographics', 'evaluation_flow_type', 'demographic_survey_config'
         ]
+
+    def get_id(self, obj):
+        return str(obj.id)
         
     def create(self, validated_data):
         """Create project and add owner as member"""

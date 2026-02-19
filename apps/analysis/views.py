@@ -20,7 +20,165 @@ from apps.evaluations.models import Evaluation, PairwiseComparison
 class AnalysisViewSet(viewsets.ViewSet):
     """ViewSet for AHP analysis operations"""
     permission_classes = [IsAuthenticated]
-    
+
+    # ------------------------------------------------------------------ #
+    # Flat endpoints referenced by urls.py                                 #
+    # ------------------------------------------------------------------ #
+
+    def calculate_individual(self, request):
+        """Calculate AHP weights for a single evaluation.
+
+        POST body: { "evaluation_id": "<uuid>", "project_id": "<uuid>" }
+        """
+        evaluation_id = request.data.get('evaluation_id')
+        project_id = request.data.get('project_id')
+
+        if not evaluation_id:
+            return Response({'error': 'evaluation_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            evaluation = Evaluation.objects.select_related('project').get(pk=evaluation_id)
+        except Evaluation.DoesNotExist:
+            return Response({'error': 'Evaluation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        project = evaluation.project
+
+        # Permission check
+        user = request.user
+        if not (project.owner == user or project.collaborators.filter(pk=user.pk).exists() or user.is_superuser):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        weights = self._calculate_evaluation_weights(evaluation)
+
+        if not weights:
+            return Response(
+                {'error': 'No pairwise comparisons found for this evaluation'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Compute consistency ratio
+        cr = evaluation.calculate_consistency_ratio()
+
+        result = []
+        for criteria_id, w in weights.items():
+            try:
+                criteria = Criteria.objects.get(pk=criteria_id)
+                result.append({
+                    'criteria_id': criteria_id,
+                    'criteria_name': criteria.name,
+                    'weight': round(w['weight'], 6),
+                    'normalized_weight': round(w['normalized'], 6),
+                    'rank': w['rank'],
+                })
+            except Criteria.DoesNotExist:
+                pass
+
+        return Response({
+            'evaluation_id': str(evaluation.id),
+            'project_id': str(project.id),
+            'consistency_ratio': round(cr, 4) if cr is not None else None,
+            'is_consistent': (cr is not None and cr <= project.consistency_ratio_threshold),
+            'weights': result,
+        })
+
+    def calculate_group(self, request):
+        """Aggregate weights across all completed evaluations for a project.
+
+        POST body: { "project_id": "<uuid>" }
+        """
+        project_id = request.data.get('project_id')
+        if not project_id:
+            return Response({'error': 'project_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(pk=project_id)
+        except Project.DoesNotExist:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        if not (project.owner == user or project.collaborators.filter(pk=user.pk).exists() or user.is_superuser):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        evaluations = project.evaluations.filter(status='completed')
+        if not evaluations.exists():
+            return Response({'error': 'No completed evaluations found'}, status=status.HTTP_400_BAD_REQUEST)
+
+        all_weights = [self._calculate_evaluation_weights(ev) for ev in evaluations]
+        all_weights = [w for w in all_weights if w]
+
+        if not all_weights:
+            return Response({'error': 'Could not calculate weights from evaluations'}, status=status.HTTP_400_BAD_REQUEST)
+
+        group_weights = all_weights[0] if len(all_weights) == 1 else self._aggregate_weights(all_weights)
+
+        result = []
+        for criteria_id, w in group_weights.items():
+            try:
+                criteria = Criteria.objects.get(pk=criteria_id)
+                result.append({
+                    'criteria_id': criteria_id,
+                    'criteria_name': criteria.name,
+                    'weight': round(w['weight'], 6),
+                    'normalized_weight': round(w['normalized'], 6),
+                    'rank': w['rank'],
+                })
+            except Criteria.DoesNotExist:
+                pass
+
+        return Response({
+            'project_id': str(project.id),
+            'evaluation_count': evaluations.count(),
+            'weights': result,
+        })
+
+    def calculate_final_priorities(self, request):
+        """Calculate final alternative priorities for a project.
+
+        POST body: { "project_id": "<uuid>" }
+        Returns criteria weights from completed evaluations.
+        """
+        return self.calculate_group(request)
+
+    def project_summary(self, request):
+        """Return a summary of a project's analysis state.
+
+        GET ?project_id=<uuid>
+        """
+        project_id = request.query_params.get('project_id')
+        if not project_id:
+            return Response({'error': 'project_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(pk=project_id)
+        except Project.DoesNotExist:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        if not (project.owner == user or project.collaborators.filter(pk=user.pk).exists() or user.is_superuser):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        evaluations = project.evaluations.all()
+        completed = evaluations.filter(status='completed')
+
+        criteria = project.criteria.filter(type='criteria', is_active=True)
+
+        avg_cr = completed.aggregate(avg=db_models.Avg('consistency_ratio'))['avg']
+
+        return Response({
+            'project_id': str(project.id),
+            'project_title': project.title,
+            'status': project.status,
+            'criteria_count': criteria.count(),
+            'total_evaluations': evaluations.count(),
+            'completed_evaluations': completed.count(),
+            'average_consistency_ratio': round(avg_cr, 4) if avg_cr is not None else None,
+            'is_ready_for_analysis': completed.exists(),
+        })
+
+    # ------------------------------------------------------------------ #
+    # Detail-routed actions (registered via DRF router)                    #
+    # ------------------------------------------------------------------ #
+
     @action(detail=True, methods=['post'])
     def calculate_weights(self, request, pk=None):
         """Calculate weight vectors for a project"""
