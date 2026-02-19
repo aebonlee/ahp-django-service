@@ -184,6 +184,27 @@ def logout_view(request):
         return Response({'message': 'Logout successful'})
 
 
+@api_view(['GET', 'PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def current_user_profile(request):
+    """GET  → return current user data.
+    PATCH → update current user data (partial)."""
+    user = request.user
+    if request.method == 'PATCH':
+        from django.db import transaction
+        with transaction.atomic():
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            profile_data = request.data.get('profile', {})
+            if profile_data:
+                profile, _ = UserProfile.objects.get_or_create(user=user)
+                profile_serializer = UserProfileUpdateSerializer(profile, data=profile_data, partial=True)
+                profile_serializer.is_valid(raise_exception=True)
+                profile_serializer.save()
+    return Response(UserSerializer(user).data)
+
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_dashboard(request):

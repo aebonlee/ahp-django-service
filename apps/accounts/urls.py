@@ -15,11 +15,14 @@ router.register(r'public-users', user_views.PublicUserViewSet, basename='public-
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
-    
+
     # Authentication endpoints
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+
+    # Current user profile – explicit path to avoid router pk-shadowing
+    path('me/', views.current_user_profile, name='user-me'),
     
     # Social authentication endpoints
     path('social/urls/', social_views.social_login_urls, name='social-login-urls'),
