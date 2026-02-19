@@ -20,8 +20,13 @@ from .serializers import (
 
 class WorkshopSessionViewSet(viewsets.ModelViewSet):
     """워크숍 세션 관리"""
-    permission_classes = [permissions.AllowAny]
     filterset_fields = ['project', 'status', 'facilitator']
+
+    def get_permissions(self):
+        # join 액션은 워크숍 코드를 가진 외부 참여자도 접근 가능
+        if self.action == 'join':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -29,7 +34,11 @@ class WorkshopSessionViewSet(viewsets.ModelViewSet):
         return WorkshopSessionSerializer
 
     def get_queryset(self):
-        return WorkshopSession.objects.order_by('-created_at')
+        if not self.request.user.is_authenticated:
+            return WorkshopSession.objects.none()
+        return WorkshopSession.objects.filter(
+            facilitator=self.request.user
+        ).order_by('-created_at')
 
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
@@ -120,11 +129,20 @@ class WorkshopSessionViewSet(viewsets.ModelViewSet):
 class WorkshopParticipantViewSet(viewsets.ModelViewSet):
     """워크숍 참여자 관리"""
     serializer_class = WorkshopParticipantSerializer
-    permission_classes = [permissions.AllowAny]
     filterset_fields = ['workshop', 'role', 'status']
 
+    def get_permissions(self):
+        # by_token 액션은 액세스 토큰을 가진 외부 참여자도 접근 가능
+        if self.action == 'by_token':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
-        return WorkshopParticipant.objects.order_by('created_at')
+        if not self.request.user.is_authenticated:
+            return WorkshopParticipant.objects.none()
+        return WorkshopParticipant.objects.filter(
+            workshop__facilitator=self.request.user
+        ).order_by('created_at')
 
     @action(detail=False, methods=['get'])
     def by_token(self, request):
@@ -141,27 +159,31 @@ class WorkshopParticipantViewSet(viewsets.ModelViewSet):
 class RealTimeProgressViewSet(viewsets.ModelViewSet):
     """실시간 진행 현황"""
     serializer_class = RealTimeProgressSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['workshop', 'is_active']
 
     def get_queryset(self):
-        return RealTimeProgress.objects.order_by('-last_updated')
+        return RealTimeProgress.objects.filter(
+            workshop__facilitator=self.request.user
+        ).order_by('-last_updated')
 
 
 class GroupConsensusResultViewSet(viewsets.ReadOnlyModelViewSet):
     """그룹 합의 결과 (읽기 전용)"""
     serializer_class = GroupConsensusResultSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['workshop']
 
     def get_queryset(self):
-        return GroupConsensusResult.objects.order_by('-created_at')
+        return GroupConsensusResult.objects.filter(
+            workshop__facilitator=self.request.user
+        ).order_by('-created_at')
 
 
 class SurveyTemplateViewSet(viewsets.ModelViewSet):
     """설문 템플릿 관리"""
     serializer_class = SurveyTemplateSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['type', 'is_active']
 
     def get_queryset(self):
@@ -171,8 +193,10 @@ class SurveyTemplateViewSet(viewsets.ModelViewSet):
 class SurveyResponseViewSet(viewsets.ModelViewSet):
     """설문 응답 관리"""
     serializer_class = SurveyResponseSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['workshop', 'participant', 'template']
 
     def get_queryset(self):
-        return SurveyResponse.objects.order_by('-submitted_at')
+        return SurveyResponse.objects.filter(
+            workshop__facilitator=self.request.user
+        ).order_by('-submitted_at')

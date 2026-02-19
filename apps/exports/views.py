@@ -3,6 +3,7 @@ Export API Views
 """
 import io
 import csv
+from django.db import models
 from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -17,36 +18,47 @@ from .serializers import (
 class ExportTemplateViewSet(viewsets.ModelViewSet):
     """Export 템플릿 관리"""
     serializer_class = ExportTemplateSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['format', 'template_type', 'is_public', 'is_default']
 
     def get_queryset(self):
-        return ExportTemplate.objects.filter(is_active=True).order_by('-created_at')
+        # 공개 템플릿 또는 본인이 만든 템플릿만 조회
+        return ExportTemplate.objects.filter(
+            is_active=True
+        ).filter(
+            models.Q(is_public=True) | models.Q(created_by=self.request.user)
+        ).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 
 class ExportHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Export 이력 조회 (읽기 전용)"""
     serializer_class = ExportHistorySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['project', 'format', 'status']
 
     def get_queryset(self):
-        return ExportHistory.objects.order_by('-created_at')
+        return ExportHistory.objects.filter(exported_by=self.request.user).order_by('-created_at')
 
 
 class ReportScheduleViewSet(viewsets.ModelViewSet):
     """자동 보고서 스케줄 관리"""
     serializer_class = ReportScheduleSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['project', 'frequency', 'is_active']
 
     def get_queryset(self):
-        return ReportSchedule.objects.order_by('-created_at')
+        return ReportSchedule.objects.filter(created_by=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 
 class ExportDataViewSet(viewsets.ViewSet):
     """프로젝트 데이터 내보내기 - Excel / CSV / JSON"""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='excel')
     def excel(self, request):

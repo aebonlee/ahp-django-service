@@ -34,4 +34,7 @@ urlpatterns = [
     # User data endpoints
     path('dashboard/', views.user_dashboard, name='user-dashboard'),
     path('search/', views.search_users, name='search-users'),
+
+    # Password verification (for sensitive actions like role switching)
+    path('verify-password/', views.verify_password, name='verify-password'),
 ]

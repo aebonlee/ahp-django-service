@@ -242,15 +242,27 @@ def user_dashboard(request):
 def search_users(request):
     """Search users by username or email"""
     query = request.query_params.get('q', '').strip()
-    
+
     if len(query) < 2:
         return Response({'error': 'Query must be at least 2 characters'}, status=400)
-    
+
     users = User.objects.filter(
         models.Q(username__icontains=query) |
         models.Q(email__icontains=query) |
         models.Q(full_name__icontains=query)
     ).filter(is_active=True)[:10]  # Limit to 10 results
-    
+
     serializer = UserSummarySerializer(users, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def verify_password(request):
+    """현재 사용자의 비밀번호 검증 (역할 전환, 시스템 초기화 등 민감한 작업 전 확인용)"""
+    password = request.data.get('password', '').strip()
+    if not password:
+        return Response({'error': '비밀번호가 필요합니다.'}, status=400)
+    if request.user.check_password(password):
+        return Response({'valid': True})
+    return Response({'valid': False, 'error': '비밀번호가 올바르지 않습니다.'}, status=400)
