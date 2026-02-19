@@ -93,10 +93,11 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
 class EvaluationCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating evaluations"""
-    
+    id = serializers.UUIDField(read_only=True)
+
     class Meta:
         model = Evaluation
-        fields = ['project', 'evaluator', 'title', 'instructions', 'expires_at']
+        fields = ['id', 'project', 'evaluator', 'title', 'instructions', 'expires_at']
         
     def create(self, validated_data):
         """Create evaluation and generate required comparisons"""
