@@ -49,7 +49,7 @@ class SurveyResponseSerializer(serializers.ModelSerializer):
 
 class WorkshopSessionSerializer(serializers.ModelSerializer):
     participants = WorkshopParticipantSerializer(
-        source='workshopparticipant_set', many=True, read_only=True
+        many=True, read_only=True
     )
     participant_count = serializers.SerializerMethodField()
 
@@ -62,11 +62,7 @@ class WorkshopSessionSerializer(serializers.ModelSerializer):
         ]
 
     def get_participant_count(self, obj):
-        return obj.workshopparticipant_set.count()
-
-    def create(self, validated_data):
-        validated_data['facilitator'] = self.context['request'].user
-        return super().create(validated_data)
+        return obj.participants.count()
 
 
 class WorkshopSessionListSerializer(serializers.ModelSerializer):
@@ -76,11 +72,11 @@ class WorkshopSessionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkshopSession
         fields = [
-            'id', 'project', 'workshop_code', 'status',
-            'scheduled_at', 'started_at', 'ended_at',
+            'id', 'project', 'title', 'description', 'workshop_code', 'status',
+            'scheduled_at', 'started_at', 'ended_at', 'duration_minutes',
             'facilitator', 'is_anonymous', 'participant_count',
             'created_at', 'updated_at'
         ]
 
     def get_participant_count(self, obj):
-        return obj.workshopparticipant_set.count()
+        return obj.participants.count()

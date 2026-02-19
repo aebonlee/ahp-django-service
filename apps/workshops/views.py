@@ -40,6 +40,15 @@ class WorkshopSessionViewSet(viewsets.ModelViewSet):
             facilitator=self.request.user
         ).order_by('-created_at')
 
+    def perform_create(self, serializer):
+        import random
+        import string
+        while True:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            if not WorkshopSession.objects.filter(workshop_code=code).exists():
+                break
+        serializer.save(facilitator=self.request.user, workshop_code=code)
+
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
         """워크숍 시작"""
