@@ -38,7 +38,7 @@ class AnalysisViewSet(viewsets.ViewSet):
 
         try:
             evaluation = Evaluation.objects.select_related('project').get(pk=evaluation_id)
-        except Evaluation.DoesNotExist:
+        except (Evaluation.DoesNotExist, ValueError, Exception):
             return Response({'error': 'Evaluation not found'}, status=status.HTTP_404_NOT_FOUND)
 
         project = evaluation.project
@@ -92,7 +92,7 @@ class AnalysisViewSet(viewsets.ViewSet):
 
         try:
             project = Project.objects.get(pk=project_id)
-        except Project.DoesNotExist:
+        except (Project.DoesNotExist, ValueError, Exception):
             return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user = request.user
@@ -150,7 +150,7 @@ class AnalysisViewSet(viewsets.ViewSet):
 
         try:
             project = Project.objects.get(pk=project_id)
-        except Project.DoesNotExist:
+        except (Project.DoesNotExist, ValueError, Exception):
             return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user = request.user
