@@ -58,16 +58,20 @@ def create_superuser():
     """관리자 계정 생성"""
     User = get_user_model()
     
-    # 기본 관리자 정보
-    admin_username = 'admin'
-    admin_email = 'admin@ahp-platform.com'
-    admin_password = 'ahp2025admin'
-    
+    # 기본 관리자 정보 (비밀번호는 환경변수에서 읽기)
+    admin_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+    admin_email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@ahp-platform.com')
+    admin_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
+
+    if not admin_password:
+        print("⚠️ DJANGO_SUPERUSER_PASSWORD 환경변수가 설정되지 않았습니다. 관리자 계정을 생성할 수 없습니다.")
+        return False
+
     try:
         if User.objects.filter(username=admin_username).exists():
             print(f"ℹ️ 관리자 계정 '{admin_username}' 이미 존재")
             return True
-            
+
         user = User.objects.create_superuser(
             username=admin_username,
             email=admin_email,
@@ -76,7 +80,6 @@ def create_superuser():
         print(f"✅ 관리자 계정 생성 완료")
         print(f"   Username: {admin_username}")
         print(f"   Email: {admin_email}")
-        print(f"   Password: {admin_password}")
         return True
     except Exception as e:
         print(f"⚠️ 관리자 계정 생성 실패: {e}")

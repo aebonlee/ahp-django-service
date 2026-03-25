@@ -90,12 +90,16 @@ def force_database_setup():
         try:
             User = get_user_model()
             if not User.objects.filter(is_superuser=True).exists():
-                User.objects.create_superuser(
-                    username='admin',
-                    email='admin@ahp.com', 
-                    password='admin123'
-                )
-                results.append("✓ Superuser created")
+                superuser_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
+                if not superuser_password:
+                    results.append("⚠️ DJANGO_SUPERUSER_PASSWORD not set, skipping superuser creation")
+                else:
+                    User.objects.create_superuser(
+                        username=os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin'),
+                        email=os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@ahp.com'),
+                        password=superuser_password
+                    )
+                    results.append("✓ Superuser created")
             else:
                 results.append("ℹ️ Superuser already exists")
         except Exception as e:

@@ -72,12 +72,16 @@ class Command(BaseCommand):
             User = get_user_model()
             
             if not User.objects.filter(is_superuser=True).exists():
-                User.objects.create_superuser(
-                    username='admin',
-                    email='admin@ahp.com',
-                    password='ahp2025admin'
-                )
-                self.stdout.write(self.style.SUCCESS("✅ Superuser created: admin/ahp2025admin"))
+                superuser_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
+                if not superuser_password:
+                    self.stdout.write(self.style.WARNING("⚠️ DJANGO_SUPERUSER_PASSWORD not set, skipping superuser creation"))
+                else:
+                    User.objects.create_superuser(
+                        username=os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin'),
+                        email=os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@ahp.com'),
+                        password=superuser_password
+                    )
+                    self.stdout.write(self.style.SUCCESS("✅ Superuser created"))
             else:
                 self.stdout.write(self.style.WARNING("ℹ️ Superuser already exists"))
                 
